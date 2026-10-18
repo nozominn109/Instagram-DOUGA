@@ -19,8 +19,8 @@ import scipy.io.wavfile as wavfile
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
 
 from preview_cut import subtitle_png
-from render import (FONT_B, INK, SR, back_out, bgm, ease, font, hearts, outlined, paste, phone_screen, pop_text,
-                    sfx_chime, sfx_whoosh, sparkles, speed_lines, title_band)
+from render import (FONT_B, INK, SR, back_out, ease, font, hearts, outlined, paste, phone_screen, pop_text,
+                    sfx_chime, sfx_whoosh, sparkles, speed_lines, tone)
 from story import PROMPT
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -30,7 +30,9 @@ VOICES = KIT / "voices_eleven"
 NOTES = json.loads((KIT / "cut_notes.json").read_text())
 OUT = ROOT / "output" / "tanakake_ep01_dokusho_final.mp4"
 W, H, FPS = 1080, 1920, 30
-TAIL = 0.15  # 声が終わってから次のカットまでの間
+TAIL = 0.05  # 声が終わってから次のカットまでの間
+SPEED = 1.12  # 全体のテンポ（声と動画を同じだけ速くして、口の動きとのズレを保つ）
+EXTRA = {"C05": 1.12, "C11": 1.08}  # 説明が長いスマホ画面のカットはさらに少し速く
 
 AI_TEXT = "はーい！初めまして、莉奈ちゃん。一緒に素敵な感想文を作ろうね！それじゃあ最初の質問です……"
 
@@ -57,6 +59,7 @@ CUTS = [
 DEFAULT = {"C01": {"tempo": 1.2, "delay": 0.1}, "C05": {"tempo": 1.2, "delay": 0.45},
            "C11": {"tempo": 1.2, "delay": 0.45}, "C12": {"tempo": 1.2, "delay": 0.05},
            "C14": {"trim": 4.0}, "END": {"trim": 5.0}}
+TRIM_OVERRIDE = {"C14": 2.8, "END": 4.6}  # セリフのないカットは短めに
 
 
 def probe(path):
@@ -75,11 +78,14 @@ def plan():
     segs, t = [], 0.0
     for cid, clip, voice, sp, sub in CUTS:
         n = {**DEFAULT.get(cid, {}), **NOTES.get(cid, {})}
-        tempo, delay = n.get("tempo", 1.0), n.get("delay", 0.1)
+        if cid in TRIM_OVERRIDE:
+            n["trim"] = TRIM_OVERRIDE[cid]
+        sp_k = SPEED * EXTRA.get(cid, 1.0)
+        tempo, delay = n.get("tempo", 1.0) * sp_k, n.get("delay", 0.1) / sp_k
         v = load_voice(voice, tempo) if voice else None
         src = CLIPS / f"{clip}.mp4" if clip else None
         start = n.get("start", 0.0)
-        slow = n.get("slow", 1.0)
+        slow = n.get("slow", 1.0) / sp_k
         if src:
             end = n.get("trim", probe(src))
             vid_len = (end - start) * slow
@@ -181,6 +187,22 @@ def hook_img():
 
 
 @lru_cache(None)
+def logo():
+    """左上の小さなシリーズロゴ（箱なし・白ふち文字）。"""
+    im = Image.new("RGBA", (520, 150), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    outlined(d, (14, 40), "田中家の", font(34), (120, 96, 84), sw=6, anchor="lm")
+    outlined(d, (10, 92), "AIじかん", font(64), (240, 110, 150), sw=9, anchor="lm")
+    x = 10 + font(64).getlength("AIじかん") + 22
+    d2 = ImageDraw.Draw(im)
+    for (cx, cy, r) in [(x, 66, 15), (x + 26, 104, 9)]:
+        d2.polygon([(cx, cy - r), (cx + r * 0.3, cy - r * 0.3), (cx + r, cy), (cx + r * 0.3, cy + r * 0.3), (cx, cy + r),
+                    (cx - r * 0.3, cy + r * 0.3), (cx - r, cy), (cx - r * 0.3, cy - r * 0.3)], fill=(255, 214, 90, 255))
+    outlined(d, (16, 134), "#1 読書感想文", font(28, FONT_B), (120, 96, 84), sw=5, anchor="lm")
+    return im
+
+
+@lru_cache(None)
 def end_card():
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
@@ -241,7 +263,7 @@ def decorate(f, seg, lt):
         sparkles(f, lt, 540, 1340, 500, 10, seed=12)
 
     if cid not in ("C05", "C11", "END"):
-        paste(f, title_band(), 0, 70)
+        paste(f, logo(), 28, 64)
     if seg["sub"] and seg["delay"] - 0.05 <= lt < vend + 0.1:
         im = sub_img(seg["speaker"], seg["sub"])
         k = back_out((lt - seg["delay"] + 0.05) / 0.22)
@@ -263,8 +285,64 @@ def frames(seg):
             yield decorate(phone_frame(seg, i / FPS), seg, i / FPS)
 
 
+def drum(kind):
+    n = int(SR * (0.25 if kind != "hat" else 0.06))
+    tt = np.arange(n) / SR
+    rng = np.random.default_rng({"kick": 1, "clap": 2, "hat": 3}[kind])
+    if kind == "kick":
+        return np.sin(2 * np.pi * (50 + 90 * np.exp(-tt * 30)) * tt) * np.exp(-tt * 14) * 0.9
+    if kind == "clap":
+        x = rng.normal(0, 1, n)
+        x = x - np.convolve(x, np.ones(6) / 6, "same")
+        return x * np.exp(-tt * 22) * 0.35
+    x = rng.normal(0, 1, n)
+    return (x - np.convolve(x, np.ones(3) / 3, "same")) * np.exp(-tt * 70) * 0.18
+
+
+def pop_bgm(total):
+    """明るくはずむポップなBGM（BPM 124、C - G - Am - F）。"""
+    out = np.zeros(int(SR * (total + 2)))
+    beat = 60 / 124
+    prog = [(261.6, 329.6, 392.0), (196.0, 246.9, 293.7), (220.0, 261.6, 329.6), (174.6, 220.0, 261.6)]
+    roots = [130.8, 98.0, 110.0, 87.3]
+    mel = [[784, 659, 784, 880, 784, 659, 587, 659], [587, 494, 587, 659, 587, 494, 440, 494],
+           [659, 523, 659, 784, 880, 784, 659, 587], [523, 587, 659, 698, 659, 587, 523, 587]]
+
+    def add(x, t, g=1.0):
+        j = int(t * SR)
+        if j < len(out):
+            out[j:j + len(x)] += (x * g)[: len(out) - j]
+
+    t, bar = 0.0, 0
+    while t < total + 1:
+        i = bar % 4
+        intro = bar < 1
+        for b in range(4):
+            tb = t + b * beat
+            if not intro:
+                add(drum("kick"), tb, 0.55)
+                if b in (1, 3):
+                    add(drum("clap"), tb, 0.6)
+            for h in range(2):
+                add(drum("hat"), tb + h * beat / 2, 0.5 if h else 0.3)
+            # ベース（8分）
+            for h in range(2):
+                add(tone(roots[i] * (2 if h else 1), beat * 0.45), tb + h * beat / 2, 0.16)
+            # ウクレレ風の裏打ちコード
+            for k, fq in enumerate(prog[i]):
+                add(tone(fq * 2, 0.35), tb + beat / 2 + k * 0.012, 0.05)
+        # グロッケン風メロディ（8分）
+        if bar % 8 >= 2 or bar < 1:
+            for k, fq in enumerate(mel[i]):
+                add(tone(fq * 2, 0.5), t + k * beat / 2, 0.035)
+                add(tone(fq * 4, 0.3), t + k * beat / 2, 0.012)
+        t += beat * 4
+        bar += 1
+    return out[: int(SR * total)]
+
+
 def build_audio(segs, total, path):
-    mix = bgm(total) * 0.55
+    mix = pop_bgm(total) * 0.6
     duck = np.ones_like(mix)
     voices = np.zeros_like(mix)
     for s in segs:
@@ -273,7 +351,7 @@ def build_audio(segs, total, path):
         j = int((s["t0"] + s["delay"]) * SR)
         v = s["voice"][: max(0, len(mix) - j)]
         voices[j:j + len(v)] += v
-        duck[j:j + len(v)] = 0.45
+        duck[j:j + len(v)] = 0.5
     duck = np.convolve(duck, np.ones(4800) / 4800, "same")
     mix = mix * duck + voices
 
