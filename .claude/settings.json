@@ -1,0 +1,15 @@
+{
+  "language": "japanese",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"【最重要ルール】希さんへの返事・説明・手順・表の見出しは、どんな場合も100%日本語で書くこと。英語の文章を混ぜない。英語にしてよいのは英語でしか動かないツールに貼るプロンプト本体だけで、その場合も意味を日本語で添える。送信前に英語の文が混ざっていないか必ず確認する。\"}}'"
+          }
+        ]
+      }
+    ]
+  }
+}
