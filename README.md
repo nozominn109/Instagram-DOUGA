@@ -54,6 +54,16 @@ AIは「使わせる・使わせない」じゃなく「どう使うか」。
 > VOICEVOX の音声は各キャラクターの利用規約に従い、上記のようなクレジット表記が必要です。
 > 教室集客など商用利用の前に、各キャラクターの規約を確認してください。
 
+## 動画生成AIでクオリティを上げる
+
+[`docs/ep01_production_kit.md`](docs/ep01_production_kit.md) にカット表と画像・動画プロンプトをまとめています。
+
+```bash
+python3 scripts/kit.py       # output/ep01_kit/ にカット音声・構図参考画像・字幕(SRT)
+# 動画生成AIで作った素材を output/ep01_kit/clips/C01.mp4 〜 C13.mp4 として置く（一部だけでもOK）
+python3 scripts/assemble.py  # 字幕・スマホ画面・エンドカード・音声を重ねて output/tanakake_ep01_dokusho_ai.mp4
+```
+
 ## 作り直し方
 
 ```bash
