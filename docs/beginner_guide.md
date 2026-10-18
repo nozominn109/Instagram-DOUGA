@@ -11,7 +11,8 @@
 |---|---|---|---|
 | ① 絵（1枚絵）を作る | **ChatGPT**（画像生成） | 無料〜月20ドル | キャラシートを貼るだけで同じキャラを描きやすい。日本語で指示できる |
 | ② 絵を動かす | **Kling（クリング）** | 無料：毎日約66クレジット／有料：月約9〜37ドル〜 | キャラの見た目がブレにくいと評価が高い。無料枠でお試しできる |
-| ③ 声・字幕・仕上げ | **私（Claude）** | ー | 声（VOICEVOX）・字幕・スマホ画面・BGM・つなぎを担当 |
+| ③ 声 | **Kling 3.0 のネイティブ音声**（動画と一緒に日本語のセリフを作る） | ②に含む | 口の動きも自動で合う。不自然な機械音声にならない |
+| ④ つなぐ・字幕・仕上げ | **私（Claude）** または **Canva**（契約済み） | ー | 最初は私が仕上げ、慣れたらCanvaで自分でもできる |
 
 ### 他の候補（比べたもの）
 
@@ -41,7 +42,7 @@
    - 莉奈がワクワク／ママがやさしく話す
 2. **毎回新しく作るのは2〜4カットだけ**（その回の話に合わせた場面）
 3. **スマホ画面・文字・エンドカードは私が作る**（AI動画を使わないのでタダ）
-4. **口の動きは「話している」と指示するだけでOK**（声は後から私が重ねます。アニメは多少ずれても自然に見えます）
+4. **声は Kling で動画と一緒に作る**（別の声サービスを契約しなくてよい）
 
 → この作り方なら、1日2〜4本の生成（失敗込みで5〜8回）で済みます。
 **月の目安：動画AIの有料プラン1つ（月およそ1,500〜6,000円）＋ChatGPT（無料〜月約3,000円）**
@@ -60,40 +61,69 @@
 
 ```
 添付のキャラクターシートの左下の女の子（莉奈・11歳）を描いてください。
-顔・髪型（茶髪ポニーテールにピンクのシュシュ）・服（ピンクのトレーナー、ピンクのチェックのスカート）は参考画像そのままで。
+髪型（茶髪ポニーテールにピンクのシュシュ）・服（ピンクのトレーナー、ピンクのチェックのスカート）は参考画像に合わせて。雰囲気が近ければ細かいところは変わってもOKです。
 
 場面：こたつに座って、スマホの画面を見ながら目をキラキラさせて大喜びしている莉奈のアップ。周りに小さなキラキラ。
 背景：2026年の東京のマンションのリビング。大きな窓から午後のやわらかい光、遠くにスカイツリーとふわふわの入道雲。
-画風：手描きの日本のアニメ映画のような、やさしい水彩タッチの背景。あたたかく懐かしい雰囲気。
+画風：ジブリ映画のような手描きアニメの画風。やさしい水彩タッチの背景、あたたかく懐かしい雰囲気。小物やインテリアは2026年の今どきの暮らし（最新のスマホ、すっきりした北欧風の家具など）。
 縦長（9:16）で、文字は入れないでください。
 ```
 
 4. 絵ができたら、気に入るまで「もう少し笑顔を大きく」などと日本語で直してOK
 5. 絵をクリック → **ダウンロード**
 
-### STEP 2：絵を動かす（Kling）
+### STEP 2：絵を動かして、声も入れる（Kling）
+
+Kling 3.0 は**日本語のセリフを、口の動きと合わせて動画と一緒に作れます**（ネイティブ音声）。
+声と口パクが一度に作れるので、いちばん簡単で自然です。
 
 1. [klingai.com](https://klingai.com) を開いて、Googleアカウントで登録
 2. **「AI Videos（AI動画）」→「Image to Video（画像から動画）」** を選ぶ
-3. STEP 1でダウンロードした絵を **アップロード**
-4. プロンプト（指示文）の欄に、下の英文をコピーして貼る
+3. モデルは **Kling 3.0**（いちばん新しいもの）を選ぶ
+4. STEP 1でダウンロードした絵を **アップロード**
+5. プロンプト（指示文）の欄に、下の文章をコピーして貼る
 
 ```
-The girl gasps with joy while looking at her smartphone and talks excitedly, bouncing slightly with sparkling eyes. Gentle slow zoom-in. Keep her face and outfit consistent. No text.
+The 11-year-old girl looks at her smartphone, gasps with joy and says in Japanese with a bright, cheerful, excited girl's voice: 「やばっ！楽しく書けそう！」 She bounces slightly with sparkling eyes. Gentle slow zoom-in. Keep her face and outfit consistent. No text, no subtitles, no background music.
 ```
 
-5. 設定
+6. 設定
    - 長さ：**5秒**
-   - 画質：お試しは **720p / Standard（安い方）**
-   - 音声：**オフ**（声は私が入れます）
-6. **「Generate（生成）」** を押して、数分待つ
-7. できたら再生して確認 → **ダウンロード**
-   - 顔が崩れていたら、もう一度「生成」してOK（毎回少しずつ違う動画になります）
+   - 画質：お試しは **720p**
+   - 音声（Native Audio / Sound）：**オン**
+7. **「Generate（生成）」** を押して、数分待つ
+8. できたら再生して確認 → **ダウンロード**
+   - 顔が崩れていたり、声がイメージと違ったら、もう一度「生成」してOK（毎回少しずつ違う動画になります）
 
-### STEP 3：私に送る
+### STEP 3：つなぐ・仕上げる
 
-できた動画（mp4）をこのチャットに添付して「C08できた」と送ってください。
-私が字幕・声・BGMを入れて、今の動画のそのカットと差し替えます。
+**最初のうちは**：できた動画をこのチャットに添付して「C08できた」と送ってください。私が字幕・BGM・スマホ画面・エンドカードを入れて仕上げます。
+
+**慣れてきたら**：契約している **Canva** で自分でつなぐこともできます。
+
+1. Canvaで「動画（モバイル）」= 縦長 1080×1920 のデザインを新規作成
+2. Klingで作った動画を「アップロード」して、場面の順に並べる
+3. 字幕：「アプリ」→「Captions（字幕）」で自動で文字起こし → 間違いを直す
+4. BGM：Canvaの「オーディオ」から明るくやさしい曲を選び、音量を小さめ（20〜30%）にする
+5. 「共有」→「ダウンロード」→ MP4 で保存
+
+---
+
+## 声について
+
+| 方法 | 自然さ | 料金 | おすすめ度 |
+|---|---|---|---|
+| **Kling 3.0 のネイティブ音声**（動画と一緒に作る） | ◎ 口の動きも自動で合う | 動画のクレジットに少し上乗せ | ★★★ まずはこれ |
+| **ElevenLabs**（声だけ作るサイト）＋ Kling の口パク機能 | ◎ キャラごとに同じ声に固定できる | 月6ドル〜 | ★★ 声がカットごとに変わるのが気になったら |
+| Canva の読み上げ（Murf AI アプリ） | △ ナレーション向き。アニメのセリフには少し硬い | Canva契約内 | ★ |
+| CapCut の読み上げ | △ 日本語の読み間違いあり。商用利用の条件があいまい | 無料 | おすすめしない |
+| にじボイス | ー | ー | 2026年2月にサービス終了と報じられているので避ける |
+
+**注意**：Kling のネイティブ音声は、作るたびに声が少し変わることがあります。同じキャラの声がバラバラに感じたら、ElevenLabs で「莉奈の声」「ママの声」などを決めて使う方法に切り替えましょう（やり方は私が案内します）。
+
+### Canva のAI動画（Veo）について
+
+Canva Pro でも Google Veo で動画を作れますが、**月に約5本まで**という情報が多く、毎日投稿のメインには足りません。使い回し素材を作るときの「おまけ」として使うのがおすすめです。
 
 ---
 
@@ -124,5 +154,8 @@ The girl gasps with joy while looking at her smartphone and talks excitedly, bou
 - Hailuo の料金: [Atlas Cloud](https://www.atlascloud.ai/blog/guides/hailuo-ai-pricing-cost) / [aitoolpick](https://aitoolpick.org/blog/hailuo-pricing-2026/)
 - 各社の1本あたりコスト比較: [fragments](https://fragments.co.jp/blog/video-ai-fee/) / [AI PICKSマガジン](https://aipicks.jp/mag/video-generation-ai-2026)
 - Google Veo / Flow の料金: [AI総研](https://www.ai-souken.com/article/what-is-flow) / [AI PICKSマガジン](https://aipicks.jp/mag/google-veo-guide-2026)
+- Kling の日本語ネイティブ音声: [Kling 公式（Lip Sync）](https://kling.ai/feature/lip-sync)
+- Canva の Veo・AI音声: [Canva公式ニュース](https://www.canva.com/newsroom/news/veo3-canva-ai-video/) / [CanvaのAI機能](https://www.canva.com/ja_jp/learn/ai-features/)
+- 声のサービス: [ElevenLabs料金（Classmethod）](https://dev.classmethod.jp/articles/elevenlabs-pricing-breakdown-2026-04/) / [にじボイス（SHIFT AI TIMES）](https://shift-ai.co.jp/blog/11737/) / [CapCut読み上げの商用利用](https://www.moviehowto.jp/capcut-ai-voice-commercial-use-risk-guide-11/)
 - Seedance（Dreamina）: [AIsmiley](https://aismiley.co.jp/ai_news/dreamina-ai-seedance-2-0/) / [Uravation](https://uravation.com/media/seedance-2-guide-pricing-copyright-2026/)
 - キャラの一貫性の比較: [SmoothieStudio](https://smoothiestudio.co.jp/en/ai-video/column/r2v-video-generation-comparison) / [AI Gallery](https://ai-gallery.jp/articles/seedance-kling-ai-video-comparison)
