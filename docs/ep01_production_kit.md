@@ -1,112 +1,179 @@
-# 第1話「読書感想文編」 動画生成AI 制作キット
+# 第1話「読書感想文編」 制作キット（カット表と指示文）
 
-人気のアニメ系リールに近い、キャラが自然に動き表情が変わるクオリティを目指すための手順書です。
-**映像は動画生成AIで作り、音声・字幕・スマホ画面・エンドカード・仕上げはこのリポジトリで行う**分担にしています。
+カットごとに、**ChatGPTに貼る「絵の指示文」**と、**Klingに貼る「動きと声の指示文」**をまとめています。
+すべてコピーしてそのまま貼れるようにしています。
 
-## 全体の流れ
+- 作り方の手順は [`beginner_guide.md`](beginner_guide.md) を見てください
+- 基準の絵：`output/ep01_kit/keyframes/C08.png`（希さんが作った莉奈の絵）。この雰囲気にそろえます
+- **こたつは使いません**。リビングは「白いソファ＋大理石の丸テーブル」の雰囲気で統一します
 
-1. **キャラの一貫性を作る**：画像AIにキャラシート（`assets/characters_sheet.webp`）を読み込ませ、下の「共通スタイル」でカットごとの1枚絵（キーフレーム）を作る
-2. **動かす**：キーフレームを画像→動画AIに入れ、カットごとの「動きプロンプト」で3〜6秒の動画にする
-3. **口パク**：しゃべるカットは `output/ep01_kit/voices/Cxx.wav` を動画AIのリップシンク機能に入れる
-4. **組み立て**：できた動画を `output/ep01_kit/clips/C01.mp4` のように置いて `python3 scripts/assemble.py`
-   → 字幕・タイトル・スマホ画面・エンドカード・BGM入りの `output/tanakake_ep01_dokusho_ai.mp4` ができる
-   （素材が無いカットは今のアニメのまま。1カットずつ差し替えていけます）
+---
 
-### おすすめツール（2026年時点の代表例）
-
-| 工程 | ツール例 | メモ |
-|---|---|---|
-| キーフレーム画像 | ChatGPT（画像生成）、Midjourney（`--cref`/Omni Reference）、Nano Banana（Gemini） | キャラシートを参照画像として毎回添付。同じチャットで続けて作るとブレにくい |
-| 画像→動画 | Kling、Hailuo（MiniMax）、Google Veo、Runway、Vidu | 「開始フレーム」にキーフレームを入れる。1カット3〜6秒で十分 |
-| リップシンク | Kling のリップシンク、Hedra、Veo（音声付き生成） | `voices/Cxx.wav` をアップロード |
-| 声（任意で差し替え） | にじボイス、ElevenLabs、VOICEVOX（現在使用中） | 差し替える場合は同じファイル名で上書き |
-
-> 各ツールの商用利用条件（無料プランは商用不可のことが多い）とクレジット表記は必ず確認してください。
-
-## 共通スタイル（すべての画像プロンプトの先頭に付ける）
+## 共通の指示（ChatGPTで絵を作るとき、毎回いっしょに貼る）
 
 ```
-Hand-painted Japanese anime film style, soft watercolor backgrounds, warm gentle afternoon light,
-cozy and nostalgic atmosphere, clean expressive character line art, vertical 9:16 composition.
-Setting: a modern 2026 Tokyo apartment living room with a big window (Tokyo Skytree in the distance,
-fluffy cumulus clouds), a low kotatsu table with a plaid futon, mandarin oranges, a picture book,
-manuscript paper and mugs on top, a lavender sofa at the back.
-Keep the characters exactly as in the attached reference sheet (faces, hair, outfits, colors).
+画風：ジブリ映画のような手描きアニメの画風。やさしい水彩タッチの背景、午後のやわらかい光、あたたかく懐かしい雰囲気。
+場所：2026年の東京のマンションのリビング。白いふかふかのソファにピンクやグレーのクッションと白いニットのブランケット。大理石の丸いローテーブル（金色の脚）に、ピンクの花を生けた花瓶、キャンドル、マグカップ。大きな窓に白いレースのカーテン、遠くにスカイツリーと入道雲。フロアランプと観葉植物。
+キャラクターは添付のキャラクターシートに合わせてください（雰囲気が近ければ細かいところは変わってもOK）。
+縦長（9:16）で、文字は入れないでください。
 ```
 
-キャラの説明（参照画像と一緒に使う）:
+**コツ**：同じChatGPTのチャットで続けて作ると、絵の雰囲気がそろいやすくなります。最初に基準の絵（C08の莉奈）も添付して「この絵と同じ雰囲気で」と伝えるとさらに安定します。
 
-- **Satoru (dad, 43)**: black-rimmed glasses, short messy dark hair, gray zip hoodie over white T-shirt, navy sweatpants, clumsy and expressive
-- **Aina (mom, 40)**: soft wavy light-brown semi-long hair, lavender cardigan, cream long skirt, gentle and reliable, often holding baby Noa
-- **Sora (son, 13)**: tall, messy black hair, black hoodie, cool and aloof expression
-- **Rina (daughter, 11)**: light-brown ponytail with pink scrunchie, pink sweatshirt, pink plaid skirt, bright energetic smile
-- **Noa (baby girl, 0)**: pink romper, pink bow headband, chubby smiling cheeks
-- **Chappy (dog)**: cream toy poodle, lavender collar with a heart tag
+### キャラクターの特徴（絵がずれたときに付け足す）
+
+- **パパ（哲・43歳）**：黒ぶちメガネ、短い黒髪ぼさぼさ、グレーのパーカーに白Tシャツ、紺のスウェット。おっちょこちょいで表情豊か
+- **ママ（愛奈・40歳）**：明るい茶髪のふんわりウェーブのセミロング、ラベンダー色のカーディガン、クリーム色のロングスカート。やさしくてしっかり者。赤ちゃんの希亜を抱っこしていることが多い
+- **蒼（13歳）**：背が高い、黒髪ぼさぼさ、黒いパーカー。クールで無表情
+- **莉奈（11歳）**：茶髪ポニーテールにピンクのシュシュ、ピンクのトレーナー、ピンクのチェックのスカート。元気な笑顔
+- **希亜（0歳）**：ピンクのロンパース、ピンクのリボンのヘアバンド、ぷくぷくの笑顔
+- **チャッピー（犬）**：クリーム色のトイプードル、ラベンダー色の首輪にハートのチャーム
+
+---
+
+## Klingの設定（すべてのカット共通）
+
+| 項目 | 選ぶもの |
+|---|---|
+| モデル | Kling 3.0（いちばん新しいもの） |
+| 長さ | 5秒 |
+| 画質 | 720p（お試し）／投稿用は1080p |
+| 音声（ネイティブ音声） | セリフがあるカットは**オン**、ないカットはオフ |
+
+Klingの指示文の最後には、毎回「**文字や字幕は入れない。BGMは入れない。**」と入れています（字幕とBGMは私があとで入れます）。
+
+---
 
 ## カット表
 
-秒数は今のタイムラインに合わせています（`python3 scripts/kit.py` で `frames/` に構図の参考画像、`voices/` にカットの音声が出ます）。
-動画AIで作る素材は、カットの長さより少し長め（＋0.5秒）に作ると安全です。
+### C01 莉奈がスマホに話しかける（セリフあり）
 
-### C01（0.0–3.2秒）全景 → 莉奈がスマホに話しかける 🔊 voices/C01.wav
-- 画像: `The whole Tanaka family relaxing around the kotatsu: Rina holds up a smartphone near her face and talks to it excitedly, Aina sits beside her holding baby Noa, Sora sits on the sofa at the back looking at his own phone, Chappy lies on the futon. Wide shot, eye level.`
-- 動き: `Slow gentle push-in toward Rina. Rina speaks happily to her smartphone, ponytail bouncing slightly. Aina smiles, baby Noa waves her hands, Chappy's tail wags. Subtle natural motion, steady camera.`
-- 莉奈「AIくーん、読書感想文ぜーんぶ書いて！」
+**絵（ChatGPT）**
+```
+白いソファの前で、大理石の丸テーブルに向かって座った莉奈が、スマホを顔の近くに持ち上げて、うれしそうに話しかけている。となりでママが赤ちゃんの希亜を抱っこして見守り、奥のソファの端には蒼が座って自分のスマホを見ている。足元にはチャッピー。家族みんながくつろいでいる、少し引いた構図。
+```
+**動きと声（Kling）**
+```
+莉奈がスマホに向かって、明るく元気な女の子の声で日本語で「AIくーん、読書感想文ぜーんぶ書いて！」と話す。ポニーテールが少しゆれる。ママはほほえみ、赤ちゃんは手をパタパタ。カメラはゆっくり莉奈に近づく。文字や字幕は入れない。BGMは入れない。
+```
 
-### C02（3.2–6.4秒）パパが慌てて覗き込む／莉奈ふくれっ面 🔊 voices/C02.wav
-- 画像: `Satoru leans in from behind Rina, peeking at her smartphone in shock, one hand on his head, sweat drop. Rina pouts. Medium two-shot.`
-- 動き: `Satoru rushes into frame from the left and leans over Rina's shoulder, panicking and talking quickly with exaggerated comedic expression. Rina turns to him and pouts, then talks back. Light comedic timing.`
-- パパ「えぇぇ！？そんなズルはダメだぞー！」→ 莉奈「えー、ラクじゃん〜！」
+### C02 パパが慌てて覗き込む（セリフあり）
 
-### C03（6.4–8.6秒）ママがスマホをやさしく取り上げる 🔊 voices/C03.wav
-- 画像: `Aina gently takes the smartphone from Rina's hand with a kind but firm smile, holding baby Noa in her other arm. Medium shot.`
-- 動き: `Aina smoothly takes the phone from Rina and talks to her warmly, wagging a finger playfully. Rina looks surprised. Soft natural motion.`
-- ママ「丸投げはダメ！こうやってお願いするの。」
+**絵（ChatGPT）**
+```
+莉奈のうしろから、パパがあわててスマホをのぞき込んでいる。片手を頭に当てて、汗を飛ばしながら驚いた顔。莉奈はふり返ってほっぺをふくらませている。二人が入る構図。
+```
+**動きと声（Kling）**
+```
+パパがあわてて身を乗り出し、おっちょこちょいなお父さんの声で日本語で「えぇぇ！？そんなズルはダメだぞー！」と言う。大げさでコミカルな表情。そのあと莉奈がほっぺをふくらませて、元気な女の子の声で「えー、ラクじゃん〜！」と言い返す。文字や字幕は入れない。BGMは入れない。
+```
 
-### C04（8.6–11.9秒）スマホ画面：プロンプト ※このリポジトリで作成（差し替え不要）
+### C03 ママがスマホをやさしく取り上げる（セリフあり）
 
-### C05（11.9–17.1秒）莉奈が納得／ママが語りかける 🔊 voices/C05.wav
-- 画像: `Aina and Rina sitting side by side at the kotatsu, both looking at the smartphone together, Rina's eyes sparkling with understanding, Aina smiling kindly. Warm light from the window. Medium two-shot.`
-- 動き: `Rina nods and speaks with a delighted expression. Then Aina turns to Rina and speaks gently and warmly, Rina listens and smiles. Slow subtle camera drift toward Aina.`
-- 莉奈「ほんとだ、それならズルくない！」→ ママ「AIは向き合い方次第で、素敵な相棒になるんだよ」
-- 長いカットなので、2本（莉奈→ママ）に分けて作り、編集アプリでつないでから `C05.mp4` にしてもOK
+**絵（ChatGPT）**
+```
+ママが片腕で赤ちゃんの希亜を抱っこしながら、もう片方の手で莉奈のスマホをやさしく取り上げている。やさしいけれどしっかりした笑顔。莉奈は少しびっくりした顔。
+```
+**動きと声（Kling）**
+```
+ママがスマホをすっと取り上げ、やさしく落ち着いた大人の女性の声で日本語で「丸投げはダメ！こうやってお願いするの。」と言う。人差し指を立ててにっこり。莉奈はきょとんとしている。文字や字幕は入れない。BGMは入れない。
+```
 
-### C06（17.1–18.6秒）莉奈「AI、質問して〜！」 🔊 voices/C06.wav
-- 画像: `Close-up of Rina holding the smartphone with both hands, calling out to it cheerfully.`
-- 動き: `Rina happily talks to the smartphone, leaning forward with excitement.`
+### C04 スマホ画面（プロンプト）※私が作るので不要
 
-### C07（18.6–22.6秒）スマホ画面：AIの返信 ※このリポジトリで作成（差し替え不要）
+### C05 莉奈が納得、ママが語りかける（セリフあり）
 
-### C08（22.6–24.1秒）莉奈ワクワク 🔊 voices/C08.wav
-- 画像: `Close-up of Rina staring at the smartphone screen with sparkling eyes and a huge excited smile, sparkles around her.`
-- 動き: `Rina gasps with joy and speaks excitedly, bouncing slightly. Quick gentle zoom-in.`
-- 莉奈「やばっ！楽しく書けそう！」
+**絵（ChatGPT）**
+```
+ソファに並んで座ったママと莉奈が、いっしょにスマホの画面をのぞき込んでいる。莉奈は「なるほど！」という顔で目をかがやかせ、ママはやさしくほほえんでいる。窓からあたたかい光。
+```
+**動きと声（Kling）**
+```
+莉奈がうなずいて、うれしそうな女の子の声で日本語で「ほんとだ、それならズルくない！」と言う。そのあとママが莉奈のほうを向いて、やさしい大人の女性の声で「AIは向き合い方次第で、素敵な相棒になるんだよ」と語りかける。莉奈はにっこり聞いている。カメラはゆっくりママに寄る。文字や字幕は入れない。BGMは入れない。
+```
+※セリフが長いので、5秒で収まらないときは「莉奈のセリフ」と「ママのセリフ」の2本に分けて作ってください。
 
-### C09（24.1–26.6秒）パパ遠い目 🔊 voices/C09.wav
-- 画像: `Satoru standing behind the kotatsu, gazing into the distance with a wistful, dreamy, slightly pathetic expression, a cool bluish tint, a thought bubble with a business proposal document.`
-- 動き: `Satoru sighs and mutters to himself while staring into the distance, glasses glinting. Very slow push-in. Comedic melancholy.`
-- パパ「僕の企画書も、相棒にしてほしいな……」
+### C06 莉奈「AI、質問して〜！」（セリフあり）
 
-### C10（26.6–27.3秒）蒼がソファの端から冷めた目（セリフなし）
-- 画像: `Sora sitting at the end of the sofa, hood half up, looking at the family with cool, unimpressed half-closed eyes. Medium close-up.`
-- 動き: `Sora slowly shifts his eyes toward the family without moving his head, deadpan expression. Almost still.`
+**絵（ChatGPT）**
+```
+莉奈が両手でスマホを持って、画面に向かって元気よく呼びかけているアップ。
+```
+**動きと声（Kling）**
+```
+莉奈が身を乗り出して、スマホに向かって元気な女の子の声で日本語で「AI、質問して〜！」と言う。わくわくした表情。文字や字幕は入れない。BGMは入れない。
+```
 
-### C11（27.3–28.0秒）希亜「あーあー！」 🔊 voices/C11.wav
-- 画像: `Close-up of baby Noa in Aina's arms, raising both tiny fists and babbling happily.`
-- 動き: `Baby Noa babbles happily and waves her arms. Aina gently bounces her.`
+### C07 スマホ画面（AIの返信）※私が作るので不要
 
-### C12（28.0–29.3秒）チャッピー「ワン！」 🔊 voices/C12.wav
-- 画像: `Chappy the cream toy poodle sitting on the kotatsu futon, barking happily with tail up.`
-- 動き: `Chappy barks once cheerfully, ears bouncing, tail wagging fast.`
+### C08 莉奈ワクワク（セリフあり）✅ 絵は完成
 
-### C13（29.3–31.9秒）家族全景＋エンドカード（上にエンドカードを重ねます）
-- 画像: `The whole family laughing together around the kotatsu, warm golden afternoon light, peaceful happy moment. Wide shot.`
-- 動き: `Slow pull-back of the whole family laughing together, Chappy wags his tail. Gentle, heartwarming.`
+**動きと声（Kling）**
+```
+莉奈がスマホの画面を見て、目をキラキラさせながら大喜びし、明るく元気な女の子の声で日本語で「やばっ！楽しく書けそう！」と言う。体が少しはずむ。カメラはゆっくり近づく。顔と服装は変えない。文字や字幕は入れない。BGMは入れない。
+```
+
+### C09 パパ遠い目（セリフあり）
+
+**絵（ChatGPT）**
+```
+パパがソファのうしろに立って、遠くを見つめている。夢見るような、ちょっと情けない表情。少し青みがかった色合い。頭の上に「企画書」の紙が浮かぶ吹き出し（文字は入れずに紙の絵だけ）。
+```
+**動きと声（Kling）**
+```
+パパが遠くを見つめてため息をつき、しみじみしたお父さんの声で日本語で「僕の企画書も、相棒にしてほしいな……」とつぶやく。メガネがキラッと光る。カメラはとてもゆっくり近づく。少しコミカルで切ない雰囲気。文字や字幕は入れない。BGMは入れない。
+```
+
+### C10 蒼がソファの端から冷めた目（セリフなし）
+
+**絵（ChatGPT）**
+```
+白いソファの端に座った蒼が、フードを半分かぶって、家族のほうを冷めた半目でじーっと見ている。上半身のアップ。
+```
+**動きと声（Kling）**（音声はオフ）
+```
+蒼が顔は動かさずに、目だけをゆっくり家族のほうに向ける。無表情。ほとんど動かない。文字や字幕は入れない。
+```
+
+### C11 希亜「あーあー！」（セリフあり）
+
+**絵（ChatGPT）**
+```
+ママに抱っこされた赤ちゃんの希亜のアップ。小さなこぶしを両手で上げて、ごきげんに笑っている。
+```
+**動きと声（Kling）**
+```
+赤ちゃんがごきげんに手をパタパタさせながら、かわいい赤ちゃんの声で「あーあー！」と声を出す。ママがやさしくゆらしている。文字や字幕は入れない。BGMは入れない。
+```
+
+### C12 チャッピー「ワン！」（鳴き声あり）
+
+**絵（ChatGPT）**
+```
+クリーム色のトイプードルのチャッピーが、ふわふわのラグの上におすわりして、しっぽを上げてうれしそうに吠えている。
+```
+**動きと声（Kling）**
+```
+小型犬が元気に一回「ワン！」と吠える。耳がはずみ、しっぽを速くふる。かわいい小型犬の鳴き声。文字や字幕は入れない。BGMは入れない。
+```
+
+### C13 家族全員で笑う（エンディング・セリフなし）
+
+**絵（ChatGPT）**
+```
+家族全員（パパ、赤ちゃんの希亜を抱っこしたママ、莉奈、蒼、チャッピー）がリビングのソファとテーブルのまわりで笑い合っている。夕方に近い金色のあたたかい光。幸せでおだやかな、少し引いた構図。
+```
+**動きと声（Kling）**（音声はオフ）
+```
+家族みんなが笑い合い、チャッピーがしっぽをふる。カメラはゆっくり引いていく。あたたかく、ほっこりする雰囲気。文字や字幕は入れない。
+```
+
+---
 
 ## 失敗しにくくするコツ
 
-- 1カット1アクション。動きを欲張ると顔や手が崩れやすい
-- キーフレームは**縦9:16**で作る（横長だと組み立て時に左右が切れます）
-- 顔が崩れたら、同じキーフレームで数回生成して一番いいものを採用
-- 生成した動画のBGMや声は使わず、組み立て時に `build/mix.wav`（セリフ＋BGM）を使います
-- 字幕・タイトル・エンドカードは組み立てスクリプトが重ねるので、動画AI側では文字を入れない
+- 1カットに動きは1つだけ。欲張ると顔や手が崩れやすい
+- 絵は必ず**縦長（9:16）**で作る
+- 顔が崩れたら、同じ絵で何回か作り直して、いちばん良いものを使う
+- 字幕・タイトル・エンドカードは私があとで入れるので、絵にも動画にも文字は入れない
+- 日本語の指示でうまく動かないときは、私に伝えてください。言い方を変えた指示文を用意します
