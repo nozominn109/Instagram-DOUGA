@@ -56,6 +56,8 @@ AIは「使わせる・使わせない」じゃなく「どう使うか」。
 
 ## 動画生成AIでクオリティを上げる
 
+初心者向けの手順とツール選び: [`docs/beginner_guide.md`](docs/beginner_guide.md)
+
 [`docs/ep01_production_kit.md`](docs/ep01_production_kit.md) にカット表と画像・動画プロンプトをまとめています。
 
 ```bash
