@@ -188,17 +188,17 @@ def hook_img():
 
 @lru_cache(None)
 def logo():
-    """左上の小さなシリーズロゴ（箱なし・白ふち文字）。"""
-    im = Image.new("RGBA", (520, 150), (0, 0, 0, 0))
+    """左上の小さなシリーズロゴ「AIは、相棒。」（箱なし・白ふち文字）。"""
+    im = Image.new("RGBA", (560, 150), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    outlined(d, (14, 40), "田中家の", font(34), (120, 96, 84), sw=6, anchor="lm")
-    outlined(d, (10, 92), "AIじかん", font(64), (240, 110, 150), sw=9, anchor="lm")
-    x = 10 + font(64).getlength("AIじかん") + 22
-    d2 = ImageDraw.Draw(im)
-    for (cx, cy, r) in [(x, 66, 15), (x + 26, 104, 9)]:
-        d2.polygon([(cx, cy - r), (cx + r * 0.3, cy - r * 0.3), (cx + r, cy), (cx + r * 0.3, cy + r * 0.3), (cx, cy + r),
-                    (cx - r * 0.3, cy + r * 0.3), (cx - r, cy), (cx - r * 0.3, cy - r * 0.3)], fill=(255, 214, 90, 255))
-    outlined(d, (16, 134), "#1 読書感想文", font(28, FONT_B), (120, 96, 84), sw=5, anchor="lm")
+    outlined(d, (12, 58), "AIは、", font(50), (120, 96, 84), sw=8, anchor="lm")
+    x = 12 + font(50).getlength("AIは、")
+    outlined(d, (x, 52), "相棒。", font(66), (240, 110, 150), sw=9, anchor="lm")
+    x += font(66).getlength("相棒。") + 6
+    for (cx, cy, r) in [(x + 8, 26, 13), (x + 30, 52, 8)]:
+        d.polygon([(cx, cy - r), (cx + r * 0.3, cy - r * 0.3), (cx + r, cy), (cx + r * 0.3, cy + r * 0.3), (cx, cy + r),
+                   (cx - r * 0.3, cy + r * 0.3), (cx - r, cy), (cx - r * 0.3, cy - r * 0.3)], fill=(255, 210, 80, 255))
+    outlined(d, (16, 116), "〜田中家の「どう使う？」〜", font(30, FONT_B), (120, 96, 84), sw=6, anchor="lm")
     return im
 
 
