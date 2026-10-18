@@ -211,3 +211,85 @@ def build(out_dir):
 
 if __name__ == "__main__":
     build(ROOT / "build")
+
+
+# ---------------------------------------------------------------- 団欒シーン用の前景
+CS = 2  # シーンキャンバスは出力の2倍解像度で描く
+
+
+def _s(*v):
+    return [x * CS for x in v]
+
+
+def kotatsu():
+    """こたつ（天板＋こたつ布団＋みかん・本・原稿用紙・マグ）。出力座標で (0, 1100) から画面下端まで。"""
+    w, h = W * CS, (H - 1100) * CS
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    oy = 1100  # この画像の上端が出力座標で y=1100
+    y = lambda v: v - oy
+    # こたつ布団
+    futon = [(60, y(1170)), (1020, y(1170)), (1075, y(1420)), (1080, y(H)), (0, y(H)), (5, y(1420))]
+    d.polygon([tuple(_s(*p)) for p in futon], fill=(236, 218, 190, 255))
+    # 半透明の柄は別レイヤーに描いて重ねる（直接描くと布団のアルファが抜けるため）
+    pattern = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    o = ImageDraw.Draw(pattern)
+    for i, x in enumerate(range(-200, 1300, 90)):
+        col = (214, 170, 160, 150) if i % 2 else (176, 196, 210, 150)
+        o.line(_s(x, y(1170), x + (x - 540) * 0.6, y(H)), fill=col, width=7 * CS)
+    for yy in (1250, 1340, 1450, 1600, 1780):
+        o.line(_s(0, y(yy), W, y(yy)), fill=(214, 170, 160, 110), width=6 * CS)
+    # 布団のたるみの影
+    for cx in (200, 540, 880):
+        o.ellipse(_s(cx - 140, y(1500), cx + 140, y(1640)), fill=(214, 192, 164, 120))
+    mask = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(mask).polygon([tuple(_s(*p)) for p in futon], fill=255)
+    pattern.putalpha(Image.fromarray(np.minimum(np.asarray(pattern.getchannel("A")), np.asarray(mask))))
+    img.alpha_composite(pattern)
+    # 天板
+    d.polygon([tuple(_s(*p)) for p in [(150, y(1130)), (930, y(1130)), (1000, y(1215)), (80, y(1215))]],
+              fill=(214, 172, 120, 255))
+    d.polygon([tuple(_s(*p)) for p in [(170, y(1136)), (910, y(1136)), (975, y(1206)), (105, y(1206))]],
+              fill=(226, 186, 136, 255))
+    d.rectangle(_s(80, y(1215), 1000, y(1238)), fill=(176, 132, 88, 255))
+    # みかん
+    d.ellipse(_s(160, y(1120), 330, y(1175)), fill=(196, 160, 120, 255))
+    for mx, my in [(205, 1128), (255, 1124), (230, 1108), (290, 1132)]:
+        d.ellipse(_s(mx - 30, y(my) - 28, mx + 30, y(my) + 26), fill=(246, 150, 52, 255))
+        d.ellipse(_s(mx - 14, y(my) - 22, mx - 2, y(my) - 12), fill=(255, 200, 120, 255))
+        d.ellipse(_s(mx - 4, y(my) - 30, mx + 6, y(my) - 22), fill=(96, 140, 70, 255))
+    # 原稿用紙と鉛筆
+    d.polygon([tuple(_s(*p)) for p in [(420, y(1150)), (600, y(1150)), (612, y(1198)), (405, y(1198))]],
+              fill=(252, 250, 244, 255))
+    for gx in range(430, 600, 16):
+        d.line(_s(gx, y(1153), gx - 3, y(1195)), fill=(214, 140, 130, 200), width=CS)
+    d.line(_s(560, y(1190), 650, y(1160)), fill=(250, 200, 60, 255), width=7 * CS)
+    # 本『ぼくの色、見つけた！』
+    d.polygon([tuple(_s(*p)) for p in [(650, y(1146)), (780, y(1146)), (792, y(1196)), (640, y(1196))]],
+              fill=(120, 190, 220, 255))
+    for i, c in enumerate([(250, 200, 80), (240, 130, 150), (130, 200, 140)]):
+        d.ellipse(_s(668 + i * 34, y(1160), 698 + i * 34, y(1184)), fill=c + (255,))
+    # マグカップ
+    for mx, col in [(860, (250, 236, 236)), (380, (226, 236, 250))]:
+        d.rounded_rectangle(_s(mx - 26, y(1120), mx + 26, y(1180)), 10 * CS, fill=col + (255,))
+        d.ellipse(_s(mx - 26, y(1112), mx + 26, y(1128)), fill=(170, 110, 80, 255))
+        d.arc(_s(mx + 16, y(1130), mx + 44, y(1166)), 270, 90, fill=col + (255,), width=6 * CS)
+    return img.filter(ImageFilter.GaussianBlur(0.7 * CS)), (0, oy)
+
+
+def sofa_layers():
+    """ソファを背もたれ（キャラの後ろ）と座面・ひじ掛け（キャラの前）に分けて返す。出力座標 (690, 860) に置く。"""
+    w, h = 520 * CS, 320 * CS
+    back = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    front = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    db, df = ImageDraw.Draw(back), ImageDraw.Draw(front)
+    body, dark, light = (206, 186, 214, 255), (178, 156, 190, 255), (222, 206, 230, 255)
+    db.rounded_rectangle(_s(40, 20, 560, 230), 50 * CS, fill=dark)
+    db.rounded_rectangle(_s(60, 34, 560, 210), 44 * CS, fill=body)
+    db.rounded_rectangle(_s(300, 70, 440, 190), 36 * CS, fill=(246, 214, 170, 255))  # クッション
+    df.rounded_rectangle(_s(60, 180, 560, 300), 34 * CS, fill=light)
+    df.rounded_rectangle(_s(60, 230, 560, 320), 20 * CS, fill=dark)
+    df.rounded_rectangle(_s(0, 110, 110, 320), 44 * CS, fill=body)
+    df.rounded_rectangle(_s(10, 120, 100, 170), 30 * CS, fill=light)
+    blur = ImageFilter.GaussianBlur(0.8 * CS)
+    return back.filter(blur), front.filter(blur), (690, 860)

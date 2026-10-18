@@ -4,23 +4,30 @@
 
 ## 第1話「読書感想文編」
 
-- 完成動画（リール用・約30秒）: [`output/tanakake_ep01_dokusho.mp4`](output/tanakake_ep01_dokusho.mp4)
-  （1080×1920 / 30fps / H.264 + AAC、セリフ音声・BGM・効果音・字幕入り）
-- 台本ノーカット版（約53秒）: [`output/tanakake_ep01_dokusho_full53s.mp4`](output/tanakake_ep01_dokusho_full53s.mp4)
-  ※ノーカット版の台本は git 履歴（初回コミット）の `scripts/story.py` にあります
+- 完成動画（リール用・約32秒）: [`output/tanakake_ep01_dokusho.mp4`](output/tanakake_ep01_dokusho.mp4)
+  （1080×1920 / 30fps / H.264 + AAC）
+- 台本ノーカット版（約53秒・旧演出）: [`output/tanakake_ep01_dokusho_full53s.mp4`](output/tanakake_ep01_dokusho_full53s.mp4)
 
-### 構成（30秒版）
+### 演出
+
+- 家族全員がこたつを囲むリビングの1シーン（みかん・原稿用紙・本・マグ、ソファに蒼、足元にチャッピー）
+- カメラがパン・ズームで話している人を追いかける
+- 口パク：VOICEVOX の音素タイミングに合わせて 閉じ／半開き／開き を切り替え（希亜はママの腕の中で口パク）
+- まばたき、呼吸の揺れ、話すときの小さな動き
+- スマホ画面アップ（プロンプト入力・AIの返信）を2回挟む
+
+### 構成
 
 | 秒 | シーン |
 |---|---|
-| 0–5.5 | フック「宿題をAIに丸投げ！？」→ 莉奈「AIくーん…」→ パパ「ズルはダメだぞー！」→ 莉奈「ラクじゃん〜！」 |
-| 5.5–7.7 | ママ登場、スマホをスッと取り上げ「丸投げはダメ！」 |
-| 7.7–11.3 | スマホ画面アップ。プロンプト全文を表示し、要点（優しいインタビュアー／質問を3つ／1個ずつ順番に）にマーカー |
-| 11.3–17.4 | 莉奈「ズルくない！」→ ママ「AIは素敵な相棒」→ 莉奈「質問して〜！」 |
-| 17.4–21.2 | AIくんの返信がスマホに届く |
-| 21.2–25.9 | 莉奈「やばっ！」→ パパ遠い目（企画書）→ 反抗期の蒼「じー……」 |
-| 25.9–27.4 | 希亜「あーあー！」チャッピー「ワン！」 |
-| 27.4–30.2 | エンドカード「AIは『丸投げ』じゃなく『相棒』に。」＋フォロー誘導 |
+| 0–3 | 家族団欒の全景 → フック「宿題をAIに丸投げ！？」→ 莉奈「AIくーん…」 |
+| 3–6.4 | パパが横からひょっこり「ズルはダメだぞー！」→ 莉奈「ラクじゃん〜！」 |
+| 6.4–8.7 | ママが「丸投げはダメ！」とスマホをスッと取り上げる |
+| 8.7–12 | スマホ画面アップ：プロンプト全文＋要点にマーカー |
+| 12–18.7 | 莉奈「ズルくない！」→ ママ「AIは素敵な相棒」→ 莉奈「質問して〜！」 |
+| 18.7–22.7 | AIくんの返信がスマホに届く |
+| 22.7–29.3 | 莉奈「やばっ！」→ パパ遠い目 → 蒼「じー……」→ 希亜「あーあー！」→ チャッピー「ワン！」 |
+| 29.3–31.9 | 家族全景に戻ってエンドカード |
 
 ### 投稿キャプション案
 
@@ -39,29 +46,37 @@ AIに「全部書いて」はNG🙅‍♀️
 AIは「使わせる・使わせない」じゃなく「どう使うか」。
 田中家と一緒に、親子でAIとの付き合い方を学ぼう👨‍👩‍👧‍👦
 
-#AI子育て #親子の会話 #読書感想文 #夏休みの宿題 #ChatGPT活用 #思春期の子育て #小学生ママ #AI教育 #田中家のAIじかん
+#AI子育て #親子の会話 #読書感想文 #ChatGPT活用 #思春期の子育て #小学生ママ #AI教育 #田中家のAIじかん
+
+音声：VOICEVOX:玄野武宏 / VOICEVOX:冥鳴ひまり / VOICEVOX:春日部つむぎ / VOICEVOX:ナースロボ＿タイプＴ / VOICEVOX:あいえるたん / VOICEVOX:満別花丸
 ```
+
+> VOICEVOX の音声は各キャラクターの利用規約に従い、上記のようなクレジット表記が必要です。
+> 教室集客など商用利用の前に、各キャラクターの規約を確認してください。
 
 ## 作り直し方
 
 ```bash
-pip install pyopenjtalk-plus numpy scipy pillow   # ffmpeg も必要
+pip install numpy scipy pillow opencv-contrib-python-headless   # ffmpeg も必要
+# VOICEVOX ENGINE を起動（https://github.com/VOICEVOX/voicevox_engine/releases）
+./run --host 127.0.0.1 --port 50021
+
 python3 scripts/cutout.py     # キャラシートから透過PNGを切り出し
-python3 scripts/voices.py     # セリフ音声(オフラインTTS)とタイムライン生成
+python3 scripts/hires.py      # EDSR x4 で超解像（build/EDSR_x4.pb が必要）→ assets/characters_hires/
+python3 scripts/voices.py     # VOICEVOX でセリフ音声＋口パク用タイミング
 python3 scripts/background.py # リビング背景を描画
 python3 scripts/render.py     # output/ にMP4を書き出し
 python3 scripts/render.py --stills 5 20   # 指定秒の静止画だけ確認
 ```
 
-- 台本・話者ごとの声/速さ: `scripts/story.py`
-- ショット構成・演出: `scripts/render.py` の `shot_*` 関数
-- キャラ画像: `assets/characters_sheet.webp`（3×2のシート）
+- 台本・キャスト（声・速さ）: `scripts/story.py`
+- 口・目の位置と差分生成: `scripts/faces.py`
+- キャラ配置・カメラワーク・演出: `scripts/render.py`（`CAST`, `cam_keys`, `live_frame`）
+- こたつ・ソファ・背景: `scripts/background.py`
 
 ## クレジット
 
-- 音声合成: Open JTalk / HTS Engine（pyopenjtalk-plus）
-  - パパ: HTS voice nitech_jp_atr503_m001（CC BY 3.0, 名古屋工業大学）
-  - ママ・希亜: HTS voice "Mei"（CC BY 3.0, 名古屋工業大学）
-  - 莉奈・AIくん・チャッピー: HTS voice tohoku-f01（CC BY 4.0, 東北大学 伊藤・能勢研究室）
+- 音声: VOICEVOX（玄野武宏、冥鳴ひまり、春日部つむぎ、ナースロボ＿タイプＴ、あいえるたん、満別花丸）
+- 超解像: EDSR（OpenCV dnn_superres, Saafke/EDSR_Tensorflow のモデル）
 - フォント: M PLUS Rounded 1c（SIL Open Font License 1.1）
-- BGM・効果音・背景: スクリプトで生成
+- BGM・効果音・背景・小物: スクリプトで生成
