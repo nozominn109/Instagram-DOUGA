@@ -27,7 +27,7 @@ FONT_XB = str(ROOT / "assets" / "fonts" / "MPLUSRounded1c-ExtraBold.ttf")
 FONT_B = str(ROOT / "assets" / "fonts" / "MPLUSRounded1c-Bold.ttf")
 W, H, FPS = 1080, 1920, 30
 SR = 48000
-END_CARD = 3.6
+END_CARD = 2.8
 FADE = 0.2
 
 INK = (78, 56, 46)
@@ -452,8 +452,8 @@ def shot_prompt(t):
     ln = LINE["l05"]
     f = bg_blur().copy()
     p = progress("l05", t)
-    shown = int(len(PROMPT) * min(1, p * 1.08))
-    hl = ease((t - ln["start"] - ln["dur"] * 0.93) / 0.6)
+    shown = int(len(PROMPT) * min(1, p * 1.7))
+    hl = ease((t - ln["start"] - ln["dur"] * 0.62) / 0.6)
     phone_screen(f, t, [("me", PROMPT, shown, ("優しいインタビュアー", "質問を3つ", "1個ずつ順番に"), hl)],
                  "丸投げNG → こうお願いする！", rot_k=(t - ln["start"] + 0.25) / 0.35)
     hd = get_head("aina", 190)
@@ -468,16 +468,17 @@ def shot_prompt(t):
 
 
 def shot_talk(t):
-    """l06〜l10: ママと莉奈の会話。"""
+    """l06・l09・l10: ママと莉奈の会話。"""
     t0 = LINE["l06"]["start"]
     f = zoomed(bg_living(), 1.05 + 0.03 * ease((t - t0) / 14))
     char(f, "aina", 330, FEET + 10, 1060, t)
     char(f, "rina", 790, FEET, 960, t, flip=True)
     glow_phone(f, 420, 820, t)
     l9 = LINE["l09"]
-    if l9["start"] + 1.6 <= t < l9["end"]:
+    t9 = l9["start"] + l9["dur"] * 0.55
+    if t9 <= t < l9["end"]:
         sparkles(f, t, 540, 700, 480, 14, seed=9)
-        pop_text(f, "AIは相棒", 540, 360, l9["start"] + 1.6, t, 96, (74, 170, 150))
+        pop_text(f, "AIは相棒", 540, 360, t9, t, 96, (74, 170, 150))
     l6 = LINE["l06"]
     if l6["start"] <= t < l6["end"]:
         pop_text(f, "ほんとだ！", 790, 470, l6["start"], t, 80, (240, 110, 150), rot=5)
@@ -719,8 +720,8 @@ def build_audio(path):
             add(x.astype(float) / 32768, ln["start"])
     add(sfx_whoosh(), LINE["l02"]["start"] - 0.3)
     add(sfx_whoosh(), LINE["l04"]["start"] + 0.9)
-    add(sfx_chime(), LINE["l05"]["start"] + LINE["l05"]["dur"] * 0.93)
-    add(sfx_chime(), LINE["l09"]["start"] + 1.6)
+    add(sfx_chime(), LINE["l05"]["start"] + LINE["l05"]["dur"] * 0.62)
+    add(sfx_chime(), LINE["l09"]["start"] + LINE["l09"]["dur"] * 0.55)
     add(sfx_chime(), LINE["l12"]["start"])
     add(sfx_chime(), TL[-1]["end"])
     mix /= max(1.0, np.abs(mix).max() / 0.95)
