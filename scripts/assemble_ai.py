@@ -285,64 +285,48 @@ def frames(seg):
             yield decorate(phone_frame(seg, i / FPS), seg, i / FPS)
 
 
-def drum(kind):
-    n = int(SR * (0.25 if kind != "hat" else 0.06))
+def load_loop(path, total, rms):
+    """音素材を読み込み、音量をそろえて全体の長さまでループ（つなぎ目はクロスフェード）。"""
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-ac", "1", "-ar", str(SR), "-f", "f32le", "-"],
+                         capture_output=True, check=True).stdout
+    x = np.frombuffer(raw, np.float32).astype(float)
+    x *= rms / max(np.sqrt(np.mean(x ** 2)), 1e-9)
+    n, cf = int(total * SR), int(SR * 1.5)
+    out = np.zeros(n + len(x))
+    pos, ramp = 0, np.linspace(0, 1, cf)
+    while pos < n:
+        y = x.copy()
+        if pos:
+            y[:cf] *= ramp
+            out[pos:pos + cf] *= 1 - ramp
+        out[pos:pos + len(y)] += y
+        pos += len(x) - cf
+    return out[:n]
+
+
+def tap():
+    """スマホをタップする小さな音。"""
+    n = int(SR * 0.03)
     tt = np.arange(n) / SR
-    rng = np.random.default_rng({"kick": 1, "clap": 2, "hat": 3}[kind])
-    if kind == "kick":
-        return np.sin(2 * np.pi * (50 + 90 * np.exp(-tt * 30)) * tt) * np.exp(-tt * 14) * 0.9
-    if kind == "clap":
-        x = rng.normal(0, 1, n)
-        x = x - np.convolve(x, np.ones(6) / 6, "same")
-        return x * np.exp(-tt * 22) * 0.35
-    x = rng.normal(0, 1, n)
-    return (x - np.convolve(x, np.ones(3) / 3, "same")) * np.exp(-tt * 70) * 0.18
+    return (np.sin(2 * np.pi * 2400 * tt) * 0.5 + np.random.default_rng(7).normal(0, 0.3, n)) * np.exp(-tt * 260) * 0.12
 
 
-def pop_bgm(total):
-    """明るくはずむポップなBGM（BPM 124、C - G - Am - F）。"""
-    out = np.zeros(int(SR * (total + 2)))
-    beat = 60 / 124
-    prog = [(261.6, 329.6, 392.0), (196.0, 246.9, 293.7), (220.0, 261.6, 329.6), (174.6, 220.0, 261.6)]
-    roots = [130.8, 98.0, 110.0, 87.3]
-    mel = [[784, 659, 784, 880, 784, 659, 587, 659], [587, 494, 587, 659, 587, 494, 440, 494],
-           [659, 523, 659, 784, 880, 784, 659, 587], [523, 587, 659, 698, 659, 587, 523, 587]]
+def message_pop():
+    """メッセージが届く「ポコン」という音。"""
+    out = np.zeros(int(SR * 0.32))
+    out[:int(SR * 0.25)] += tone(880, 0.25) * 0.12
+    out[int(SR * 0.07):int(SR * 0.07) + int(SR * 0.25)] += tone(1320, 0.25) * 0.1
+    return out
 
-    def add(x, t, g=1.0):
-        j = int(t * SR)
-        if j < len(out):
-            out[j:j + len(x)] += (x * g)[: len(out) - j]
 
-    t, bar = 0.0, 0
-    while t < total + 1:
-        i = bar % 4
-        intro = bar < 1
-        for b in range(4):
-            tb = t + b * beat
-            if not intro:
-                add(drum("kick"), tb, 0.55)
-                if b in (1, 3):
-                    add(drum("clap"), tb, 0.6)
-            for h in range(2):
-                add(drum("hat"), tb + h * beat / 2, 0.5 if h else 0.3)
-            # ベース（8分）
-            for h in range(2):
-                add(tone(roots[i] * (2 if h else 1), beat * 0.45), tb + h * beat / 2, 0.16)
-            # ウクレレ風の裏打ちコード
-            for k, fq in enumerate(prog[i]):
-                add(tone(fq * 2, 0.35), tb + beat / 2 + k * 0.012, 0.05)
-        # グロッケン風メロディ（8分）
-        if bar % 8 >= 2 or bar < 1:
-            for k, fq in enumerate(mel[i]):
-                add(tone(fq * 2, 0.5), t + k * beat / 2, 0.035)
-                add(tone(fq * 4, 0.3), t + k * beat / 2, 0.012)
-        t += beat * 4
-        bar += 1
-    return out[: int(SR * total)]
+AMBIENCE = ROOT / "assets" / "sounds" / "living_ambience.mp3"
+MUSIC = ROOT / "assets" / "sounds" / "bgm.mp3"  # 置いてあれば小さく流す
 
 
 def build_audio(segs, total, path):
-    mix = pop_bgm(total) * 0.6
+    mix = load_loop(AMBIENCE, total, 0.024)
+    if MUSIC.exists():
+        mix += load_loop(MUSIC, total, 0.03)
     duck = np.ones_like(mix)
     voices = np.zeros_like(mix)
     for s in segs:
@@ -353,7 +337,7 @@ def build_audio(segs, total, path):
         voices[j:j + len(v)] += v
         duck[j:j + len(v)] = 0.5
     duck = np.convolve(duck, np.ones(4800) / 4800, "same")
-    mix = mix * duck + voices
+    mix = mix * (0.5 + 0.5 * duck) + voices
 
     def add(x, t):
         j = int(t * SR)
@@ -364,6 +348,15 @@ def build_audio(segs, total, path):
     add(sfx_whoosh(), at["C04"] + 0.1)
     c05 = next(s for s in segs if s["id"] == "C05")
     add(sfx_chime(), c05["t0"] + c05["delay"] + len(c05["voice"]) / SR * 0.88)
+    rng = np.random.default_rng(3)
+    vlen = len(c05["voice"]) / SR
+    tt = c05["t0"] + 0.2
+    while tt < c05["t0"] + c05["delay"] + vlen / 1.12:
+        add(tap(), tt)
+        tt += rng.uniform(0.09, 0.2)
+    c11 = next(s for s in segs if s["id"] == "C11")
+    add(message_pop(), c11["t0"] + 0.15)
+    add(message_pop(), c11["t0"] + c11["delay"])
     c09 = next(s for s in segs if s["id"] == "C09")
     add(sfx_chime(), c09["t0"] + (c09["delay"] + len(c09["voice"]) / SR) * 0.62)
     add(sfx_chime(), at["C12"])
