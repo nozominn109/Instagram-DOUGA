@@ -59,6 +59,7 @@ CUTS = [
 DEFAULT = {"C01": {"tempo": 1.2, "delay": 0.1}, "C05": {"tempo": 1.2, "delay": 0.45},
            "C11": {"tempo": 1.2, "delay": 0.45}, "C12": {"tempo": 1.2, "delay": 0.05},
            "C14": {"trim": 4.0}, "END": {"trim": 5.0}}
+CLIP_AUDIO = {"C14", "C15", "C16", "END"}  # Klingが作った音（音楽・効果音・赤ちゃんと犬の声）をそのまま使うカット
 TRIM_OVERRIDE = {"C14": 2.8, "END": 4.6}  # セリフのないカットは短めに
 
 
@@ -94,7 +95,7 @@ def plan():
         need = delay + len(v) / SR + TAIL if v is not None else 0.0
         dur = max(vid_len, need)
         segs.append(dict(id=cid, src=src, start=start, slow=slow, vid_len=vid_len, voice=v, delay=delay,
-                         speaker=sp, sub=sub, t0=t, dur=dur))
+                         speaker=sp, sub=sub, t0=t, dur=dur, clip_audio=cid in CLIP_AUDIO))
         t += dur
     return segs
 
@@ -170,11 +171,22 @@ def phone_frame(seg, lt):
 
 @lru_cache(None)
 def sub_img(speaker, text):
-    path = KIT / f"_sub_{speaker}.png"
-    subtitle_png(speaker, text, path)
-    im = Image.open(path).copy()
-    path.unlink()
-    return im
+    """字幕：箱なしの白い文字に、やわらかい影（参考リールの雰囲気）。"""
+    fnt = font(60)
+    lines = text.split("\n")
+    lh = 84
+    im = Image.new("RGBA", (W, lh * len(lines) + 60), (0, 0, 0, 0))
+    sh = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    ds, d = ImageDraw.Draw(sh), ImageDraw.Draw(im)
+    for i, ln in enumerate(lines):
+        y = 30 + lh * i + lh / 2
+        ds.text((W / 2, y + 3), ln, font=fnt, fill=(40, 30, 30, 200), anchor="mm", stroke_width=7,
+                stroke_fill=(40, 30, 30, 200))
+        d.text((W / 2, y), ln, font=fnt, fill=(255, 255, 255, 255), anchor="mm", stroke_width=2,
+               stroke_fill=(90, 70, 70, 255))
+    sh = sh.filter(ImageFilter.GaussianBlur(6))
+    sh.alpha_composite(im)
+    return sh
 
 
 @lru_cache(None)
@@ -266,11 +278,8 @@ def decorate(f, seg, lt):
         paste(f, logo(), 28, 64)
     if seg["sub"] and seg["delay"] - 0.05 <= lt < vend + 0.1:
         im = sub_img(seg["speaker"], seg["sub"])
-        k = back_out((lt - seg["delay"] + 0.05) / 0.22)
-        s = 0.85 + 0.15 * k
-        if s < 0.999:
-            im = im.resize((int(W * s), int(H * s)), Image.BILINEAR)
-        paste(f, im, W / 2 - im.width / 2, (H - im.height) / 2 + (1 - s) * 400, min(1, k + 0.2))
+        k = ease((lt - seg["delay"] + 0.05) / 0.15)
+        paste(f, im, 0, 1470 - im.height / 2 + (1 - k) * 12, k)
     if cid == "END" and lt > dur - 0.4:
         f = Image.blend(f, Image.new("RGBA", (W, H), (255, 250, 240, 255)), ease((lt - dur + 0.4) / 0.4) * 0.5)
     return f
@@ -329,15 +338,38 @@ def build_audio(segs, total, path):
         mix += load_loop(MUSIC, total, 0.03)
     duck = np.ones_like(mix)
     voices = np.zeros_like(mix)
+    def clip_audio(src, start, length, speed):
+        raw = subprocess.run(["ffmpeg", "-v", "error", "-ss", str(start), "-t", str(length * speed), "-i", str(src),
+                              "-vn", "-af", f"atempo={speed}", "-ac", "1", "-ar", str(SR), "-f", "f32le", "-"],
+                             capture_output=True, check=True).stdout
+        return np.frombuffer(raw, np.float32).astype(float)
+
+    kling = np.zeros_like(mix)
     for s in segs:
-        if s["voice"] is None:
+        if s["clip_audio"]:
+            x = clip_audio(s["src"], s["start"], s["dur"], 1 / s["slow"])
+            j = int(s["t0"] * SR)
+            x = x[: max(0, min(len(mix) - j, int(s["dur"] * SR)))]
+            fade = min(len(x), int(SR * 0.08))
+            x[:fade] *= np.linspace(0, 1, fade)
+            x[-fade:] *= np.linspace(1, 0, fade)
+            kling[j:j + len(x)] += x
+    c13 = next(s for s in segs if s["id"] == "C13")
+    c14 = next(s for s in segs if s["id"] == "C14")
+    x = clip_audio(c14["src"], 0, 2.6, 1 / c14["slow"]) * 0.7  # パパに寄るところにも蒼と同じズームの音
+    x[-int(SR * 0.4):] *= np.linspace(1, 0, int(SR * 0.4))
+    j = int(c13["t0"] * SR)
+    kling[j:j + len(x)] += x[: len(mix) - j]
+
+    for s in segs:
+        if s["voice"] is None or s["clip_audio"]:
             continue
         j = int((s["t0"] + s["delay"]) * SR)
         v = s["voice"][: max(0, len(mix) - j)]
         voices[j:j + len(v)] += v
         duck[j:j + len(v)] = 0.5
     duck = np.convolve(duck, np.ones(4800) / 4800, "same")
-    mix = mix * (0.5 + 0.5 * duck) + voices
+    mix = mix * (0.5 + 0.5 * duck) + voices + kling * 0.85
 
     def add(x, t):
         j = int(t * SR)
