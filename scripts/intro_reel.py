@@ -34,6 +34,9 @@ SCENES = [
     ("outro", "END", 1.0, 4.0, 1.0),
 ]
 CHAR_FILE = {"哲": "satoru", "愛奈": "aina", "蒼": "sora", "莉奈": "rina", "希亜": "noa", "チャッピー": "chappy"}
+# 名前の横に添える言葉（"left" は名前の左、"right" は右）
+LABEL = {"哲": ("パパ", "left"), "愛奈": ("ママ", "left"), "蒼": ("中1", "right"), "莉奈": ("小5", "right"),
+         "希亜": ("0歳", "right")}
 RUBY = {"哲": "さとる", "愛奈": "あいな", "蒼": "そら", "莉奈": "りな", "希亜": "のあ", "チャッピー": ""}
 # 名前を言う声（なければ鳴き声などの既存の声、それもなければ声なし）
 NAME_VOICE = {"哲": ["INTRO_satoru"], "愛奈": ["INTRO_aina_name"], "蒼": ["INTRO_sora"], "莉奈": ["INTRO_rina"],
@@ -103,13 +106,20 @@ def big_text(f, lines, y, lt, size=96, color=(240, 110, 150), t0=0.0):
 def name_tag(f, name, lt):
     x, y = W / 2, 1500
     k = back_out((lt - 0.12) / 0.25)
-    fnt, rf = font(120), font(48)
-    w = int(max(fnt.getlength(name), rf.getlength(RUBY[name]))) + 80
+    fnt, rf, lf = font(120), font(48), font(60)
+    nw = fnt.getlength(name)
+    label, side = LABEL.get(name, ("", ""))
+    lw = lf.getlength(label) + 24 if label else 0
+    w = int(nw + lw * 2) + 100
     im = Image.new("RGBA", (w, 280), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
+    cx = w / 2
     if RUBY[name]:
-        outlined(d, (w / 2, 52), RUBY[name], rf, CHAR_COLOR[name], sw=8, anchor="mm")
-    outlined(d, (w / 2, 170), name, fnt, (255, 255, 255), stroke=CHAR_COLOR[name], sw=14, anchor="mm")
+        outlined(d, (cx, 52), RUBY[name], rf, CHAR_COLOR[name], sw=8, anchor="mm")
+    outlined(d, (cx, 170), name, fnt, (255, 255, 255), stroke=CHAR_COLOR[name], sw=14, anchor="mm")
+    if label:
+        lx = cx - nw / 2 - 16 if side == "left" else cx + nw / 2 + 16
+        outlined(d, (lx, 190), label, lf, CHAR_COLOR[name], sw=9, anchor="rm" if side == "left" else "lm")
     s = max(0.05, k)
     im = im.resize((max(1, int(w * s)), max(1, int(280 * s))), Image.BILINEAR)
     paste(f, im, x - im.width / 2, y - im.height / 2, min(1, lt / 0.12))
