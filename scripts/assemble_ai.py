@@ -308,6 +308,25 @@ def load_loop(path, total, rms):
     return out[:n]
 
 
+def music_bed(total, rms):
+    """BGMの最後は曲自体がフェードアウトしていくので、その手前で曲の中盤につなぎ直して最後まで鳴らす。"""
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(MUSIC), "-ac", "1", "-ar", str(SR), "-f", "f32le", "-"],
+                         capture_output=True, check=True).stdout
+    x = np.frombuffer(raw, np.float32).astype(float)
+    body_end, rejoin, cf = int(SR * 61), int(SR * 25), int(SR * 1.5)
+    x *= rms / max(np.sqrt(np.mean(x[SR * 5:body_end] ** 2)), 1e-9)
+    out = x[:body_end].copy()
+    while len(out) < total * SR:
+        nxt = x[rejoin:body_end].copy()
+        ramp = np.linspace(0, 1, cf)
+        out[-cf:] = out[-cf:] * (1 - ramp) + nxt[:cf] * ramp
+        out = np.concatenate([out, nxt[cf:]])
+    out = out[: int(total * SR)]
+    fade = int(SR * 1.5)
+    out[-fade:] *= np.linspace(1, 0, fade)
+    return out
+
+
 def tap():
     """スマホをタップする小さな音。"""
     n = int(SR * 0.03)
@@ -330,7 +349,11 @@ MUSIC = ROOT / "assets" / "sounds" / "bgm.mp3"  # 置いてあれば小さく流
 def build_audio(segs, total, path):
     mix = load_loop(AMBIENCE, total, 0.024)
     if MUSIC.exists():
-        mix += load_loop(MUSIC, total, 0.03)
+        music = music_bed(total, 0.05)
+        t_end = next(s["t0"] for s in segs if s["id"] == "END")
+        a = int(t_end * SR)
+        music[a:] *= np.minimum(1.4, 1 + np.arange(len(music) - a) / SR)  # セリフのないエンディングは少し大きく
+        mix += music
     duck = np.ones_like(mix)
     voices = np.zeros_like(mix)
     def clip_audio(src, start, length, speed):
@@ -362,7 +385,7 @@ def build_audio(segs, total, path):
         j = int((s["t0"] + s["delay"]) * SR)
         v = s["voice"][: max(0, len(mix) - j)]
         voices[j:j + len(v)] += v
-        duck[j:j + len(v)] = 0.5
+        duck[j:j + len(v)] = 0.2
     duck = np.convolve(duck, np.ones(4800) / 4800, "same")
     mix = mix * (0.5 + 0.5 * duck) + voices + kling * 0.85
 
