@@ -5,11 +5,13 @@
 使い方:
     python3 scripts/intro_reel.py   # -> output/tanakake_intro.mp4
 """
+import math
 import subprocess
+from functools import lru_cache
 
 import numpy as np
 import scipy.io.wavfile as wavfile
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 
 from assemble_ai import (AMBIENCE, CLIPS, FPS, H, MUSIC, ROOT, SR, VOICES, W, load_loop, load_voice, logo,
                          music_bed, sub_img)
@@ -22,17 +24,18 @@ LINE = "AIに聞いて\n答えを教えてもらうんじゃなくて、\n一緒
 # (場面, 動画, 開始秒, 長さ, 再生の速さ)
 SCENES = [
     ("hello", "END", 0.0, 3.0, 1.0),
-    ("哲", "C02", 0.4, 1.15, 1.0),
-    ("愛奈", "C07", 0.2, 1.15, 1.0),
-    ("蒼", "C14", 3.0, 1.15, 1.0),
-    ("莉奈", "C12", 0.6, 1.15, 1.0),
-    ("希亜", "C15_C16", 0.2, 1.15, 1.0),
-    ("チャッピー", "C15_C16", 2.6, 1.25, 1.0),
+    ("哲", None, 0, 1.15, 1.0),
+    ("愛奈", None, 0, 1.15, 1.0),
+    ("蒼", None, 0, 1.15, 1.0),
+    ("莉奈", None, 0, 1.15, 1.0),
+    ("希亜", None, 0, 1.15, 1.0),
+    ("チャッピー", None, 0, 1.25, 1.0),
     ("line", "C09", 0.0, 6.0, 0.85),
     ("outro", "END", 1.0, 4.0, 1.0),
 ]
-NAME_POS = {"哲": (300, 1150), "愛奈": (300, 1150), "蒼": (760, 1180), "莉奈": (780, 1150), "希亜": (300, 1120),
-            "チャッピー": (760, 1120)}
+CHAR_FILE = {"哲": "satoru", "愛奈": "aina", "蒼": "sora", "莉奈": "rina", "希亜": "noa", "チャッピー": "chappy"}
+CHAR_COLOR = {"哲": (104, 132, 170), "愛奈": (164, 132, 206), "蒼": (60, 70, 96), "莉奈": (240, 128, 160),
+              "希亜": (246, 150, 170), "チャッピー": (214, 168, 106)}
 
 
 def clip_frames(clip, start, dur, speed):
@@ -50,6 +53,37 @@ def clip_frames(clip, start, dur, speed):
     p.wait()
 
 
+@lru_cache(None)
+def card_bg():
+    """名前紹介の背景：リビングをぼかして、やわらかい色をかぶせたもの。"""
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-ss", "1.0", "-i", str(CLIPS / "END.mp4"), "-frames:v", "1", "-vf",
+                          f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H}", "-f", "rawvideo",
+                          "-pix_fmt", "rgb24", "-"], capture_output=True, check=True).stdout
+    bg = Image.frombytes("RGB", (W, H), raw).filter(ImageFilter.GaussianBlur(18)).convert("RGBA")
+    bg.alpha_composite(Image.new("RGBA", (W, H), (255, 248, 240, 120)))
+    return bg
+
+
+@lru_cache(None)
+def char_img(name):
+    im = Image.open(ROOT / "assets" / "characters_hires" / f"{CHAR_FILE[name]}.png").convert("RGBA")
+    h = 1150 if name not in ("希亜", "チャッピー") else 820
+    return im.resize((int(im.width * h / im.height), h), Image.LANCZOS)
+
+
+def card_frames(name, dur):
+    for i in range(round(dur * FPS)):
+        lt = i / FPS
+        f = card_bg().copy()
+        im = char_img(name)
+        k = back_out(lt / 0.3)
+        s = 0.6 + 0.4 * k
+        im2 = im.resize((max(1, int(im.width * s)), max(1, int(im.height * s))), Image.BILINEAR) if s < 0.999 else im
+        bottom = 1380
+        paste(f, im2, W / 2 - im2.width / 2, bottom - im2.height + math.sin(lt * 5) * 6, min(1, lt / 0.12))
+        yield f
+
+
 def big_text(f, lines, y, lt, size=96, color=(240, 110, 150), t0=0.0):
     k = back_out((lt - t0) / 0.35)
     if k <= 0:
@@ -63,12 +97,12 @@ def big_text(f, lines, y, lt, size=96, color=(240, 110, 150), t0=0.0):
 
 
 def name_tag(f, name, lt):
-    x, y = NAME_POS[name]
-    k = back_out(lt / 0.25)
-    fnt = font(110)
+    x, y = W / 2, 1530
+    k = back_out((lt - 0.12) / 0.25)
+    fnt = font(120)
     w = int(fnt.getlength(name)) + 80
     im = Image.new("RGBA", (w, 200), (0, 0, 0, 0))
-    outlined(ImageDraw.Draw(im), (w / 2, 100), name, fnt, (255, 255, 255), stroke=(240, 110, 150), sw=12, anchor="mm")
+    outlined(ImageDraw.Draw(im), (w / 2, 100), name, fnt, (255, 255, 255), stroke=CHAR_COLOR[name], sw=14, anchor="mm")
     s = max(0.05, k)
     im = im.resize((max(1, int(w * s)), max(1, int(200 * s))), Image.BILINEAR)
     paste(f, im, x - im.width / 2, y - im.height / 2, min(1, lt / 0.12))
@@ -128,7 +162,8 @@ def main():
            "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", str(OUT)]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     for scene, clip, start, dur, speed in scenes:
-        for i, f in enumerate(clip_frames(clip, start, dur, speed)):
+        src = clip_frames(clip, start, dur, speed) if clip else card_frames(scene, dur)
+        for i, f in enumerate(src):
             proc.stdin.write(decorate(f, scene, i / FPS, dur, vlen).convert("RGB").tobytes())
     proc.stdin.close()
     proc.wait()
