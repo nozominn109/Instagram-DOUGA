@@ -34,6 +34,10 @@ SCENES = [
     ("outro", "END", 1.0, 4.0, 1.0),
 ]
 CHAR_FILE = {"哲": "satoru", "愛奈": "aina", "蒼": "sora", "莉奈": "rina", "希亜": "noa", "チャッピー": "chappy"}
+RUBY = {"哲": "さとる", "愛奈": "あいな", "蒼": "そら", "莉奈": "りな", "希亜": "のあ", "チャッピー": ""}
+# 名前を言う声（なければ鳴き声などの既存の声、それもなければ声なし）
+NAME_VOICE = {"哲": ["INTRO_satoru"], "愛奈": ["INTRO_aina_name"], "蒼": ["INTRO_sora"], "莉奈": ["INTRO_rina"],
+              "希亜": ["INTRO_noa", "C15_noa"], "チャッピー": ["INTRO_chappy", "C16_chappy"]}
 CHAR_COLOR = {"哲": (104, 132, 170), "愛奈": (164, 132, 206), "蒼": (60, 70, 96), "莉奈": (240, 128, 160),
               "希亜": (246, 150, 170), "チャッピー": (214, 168, 106)}
 
@@ -97,14 +101,17 @@ def big_text(f, lines, y, lt, size=96, color=(240, 110, 150), t0=0.0):
 
 
 def name_tag(f, name, lt):
-    x, y = W / 2, 1530
+    x, y = W / 2, 1500
     k = back_out((lt - 0.12) / 0.25)
-    fnt = font(120)
-    w = int(fnt.getlength(name)) + 80
-    im = Image.new("RGBA", (w, 200), (0, 0, 0, 0))
-    outlined(ImageDraw.Draw(im), (w / 2, 100), name, fnt, (255, 255, 255), stroke=CHAR_COLOR[name], sw=14, anchor="mm")
+    fnt, rf = font(120), font(48)
+    w = int(max(fnt.getlength(name), rf.getlength(RUBY[name]))) + 80
+    im = Image.new("RGBA", (w, 280), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    if RUBY[name]:
+        outlined(d, (w / 2, 52), RUBY[name], rf, CHAR_COLOR[name], sw=8, anchor="mm")
+    outlined(d, (w / 2, 170), name, fnt, (255, 255, 255), stroke=CHAR_COLOR[name], sw=14, anchor="mm")
     s = max(0.05, k)
-    im = im.resize((max(1, int(w * s)), max(1, int(200 * s))), Image.BILINEAR)
+    im = im.resize((max(1, int(w * s)), max(1, int(280 * s))), Image.BILINEAR)
     paste(f, im, x - im.width / 2, y - im.height / 2, min(1, lt / 0.12))
 
 
@@ -144,6 +151,14 @@ def main():
         i = next(i for i, s in enumerate(scenes) if s[0] == "line")
         n, c, st, _, sp = scenes[i]
         scenes[i] = (n, c, st, min(max(4.5, vlen + 0.5), 6.0 / sp), sp)
+    name_voice = {}
+    for i, (n, c, st, d, sp) in enumerate(scenes):
+        for cand in NAME_VOICE.get(n, []):
+            if (VOICES / f"{cand}.mp3").exists():
+                v = load_voice(cand, 1.1)
+                name_voice[n] = v
+                scenes[i] = (n, c, st, max(d, 0.15 + len(v) / SR + 0.25), sp)
+                break
     total = sum(s[3] for s in scenes)
     print(f"合計 {total:.1f} 秒", "（声あり）" if voice is not None else "（声なしの仮の版）")
 
@@ -153,6 +168,28 @@ def main():
         j = int((t0 + 0.25) * SR)
         mix[j:j + len(voice)] *= 0.55
         mix[j:j + len(voice)] += voice[: len(mix) - j]
+    # 最初のあいさつと最後のお知らせも愛奈の声で
+    for scene_name, cand in (("hello", "INTRO_aina_hello"), ("outro", "INTRO_aina_outro")):
+        if (VOICES / f"{cand}.mp3").exists():
+            v = load_voice(cand, 1.1)
+            i = next(i for i, sc in enumerate(scenes) if sc[0] == scene_name)
+            n, c, st, d, sp = scenes[i]
+            scenes[i] = (n, c, st, max(d, 0.3 + len(v) / SR + 0.4), sp)
+            name_voice[scene_name] = v
+    total = sum(sc[3] for sc in scenes)
+    mix = load_loop(AMBIENCE, total, 0.02) + music_bed(total, 0.06)
+    t0 = sum(sc[3] for sc in scenes[: next(i for i, sc in enumerate(scenes) if sc[0] == "line")])
+    if voice is not None:
+        j = int((t0 + 0.25) * SR)
+        mix[j:j + len(voice)] *= 0.55
+        mix[j:j + len(voice)] += voice[: len(mix) - j]
+    t = 0.0
+    for n, c, st, d, sp in scenes:
+        if n in name_voice:
+            v = name_voice[n]
+            j = int((t + (0.3 if n in ("hello", "outro") else 0.15)) * SR)
+            mix[j:j + len(v)] = mix[j:j + len(v)] * 0.55 + v[: len(mix) - j]
+        t += d
     mix /= max(1.0, np.abs(mix).max() / 0.95)
     wav = ROOT / "output" / "_intro_mix.wav"
     wavfile.write(wav, SR, (mix * 32767).astype(np.int16))
