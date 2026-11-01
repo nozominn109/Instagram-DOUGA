@@ -86,3 +86,8 @@
 
 - 場面5で、蒼が「……心配かけたくなかったんだよ」とぽつりと言うセリフを入れる
 - キャプションに相談窓口の一文は入れない
+
+## 蒼の声（決定）
+
+- ElevenLabsのボイスライブラリの「Hinata - Inviting, Smooth and Measured」を使う
+- そのままだと少し大人っぽいので、仕上げで声の高さを1.06倍にする（声の響きは保ったまま：`rubberband=pitch=1.06:formant=preserved`）
