@@ -179,7 +179,8 @@ def main():
     if vlen:  # 声の長さに合わせてセリフの場面の長さを決める
         i = next(i for i, s in enumerate(scenes) if s[0] == "line")
         n, c, st, _, sp = scenes[i]
-        scenes[i] = (n, c, st, min(max(4.5, vlen + 0.5), 6.0 / sp), sp)
+        d = max(4.5, vlen + 0.5)
+        scenes[i] = (n, c, st, d, min(sp, 4.9 / d))  # 声が長いときは動画をゆっくり再生して合わせる
     name_voice = {}
     for i, (n, c, st, d, sp) in enumerate(scenes):
         for cand in NAME_VOICE.get(n, []):
