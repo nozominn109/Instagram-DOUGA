@@ -335,7 +335,13 @@ MUSIC = ROOT / "assets" / "sounds" / "bgm.mp3"  # 置いてあれば小さく流
 def build_audio(segs, total, path):
     mix = load_loop(AMBIENCE, total, 0.024)
     if MUSIC.exists():
-        mix += load_loop(MUSIC, total, 0.03)
+        music = load_loop(MUSIC, total, 0.03)
+        # 赤ちゃんと犬・エンディングはKlingの音楽を使うので、その前にBGMをフェードアウト
+        t15 = next(s["t0"] for s in segs if s["id"] == "C15")
+        a, b = int((t15 - 0.8) * SR), int(t15 * SR)
+        music[a:b] *= np.linspace(1, 0, b - a)
+        music[b:] = 0
+        mix += music
     duck = np.ones_like(mix)
     voices = np.zeros_like(mix)
     def clip_audio(src, start, length, speed):
