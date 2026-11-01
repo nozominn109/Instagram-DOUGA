@@ -59,7 +59,7 @@ CUTS = [
 DEFAULT = {"C01": {"tempo": 1.2, "delay": 0.1}, "C05": {"tempo": 1.2, "delay": 0.45},
            "C11": {"tempo": 1.2, "delay": 0.45}, "C12": {"tempo": 1.2, "delay": 0.05},
            "C14": {"trim": 4.0}, "END": {"trim": 5.0}}
-CLIP_AUDIO = {"C14", "C15", "C16", "END"}  # Klingが作った音（音楽・効果音・赤ちゃんと犬の声）をそのまま使うカット
+CLIP_AUDIO = {"C14"}  # Klingが作ったズームの効果音をそのまま使うカット
 TRIM_OVERRIDE = {"C14": 2.8, "END": 4.6}  # セリフのないカットは短めに
 
 
@@ -256,13 +256,8 @@ def decorate(f, seg, lt):
     elif cid == "C13":
         tint = Image.new("RGBA", (W, H), (110, 140, 200, int(55 * ease(lt / 0.5))))
         f.alpha_composite(tint)
-        pop_text(f, "（遠い目）", 280, 1330, 1.0, lt, 64, (90, 110, 170))
     elif cid == "C14":
         pop_text(f, "じー……", 300, 520, 1.2, lt, 92, (70, 80, 120), rot=-3)
-        if lt > 1.0:
-            d = ImageDraw.Draw(f)
-            d.rounded_rectangle((90, 1330, 520, 1410), 40, fill=(60, 70, 96, 220))
-            d.text((305, 1370), "中1・反抗期の蒼", font=font(40), fill=(255, 255, 255), anchor="mm")
     elif cid == "C15":
         pop_text(f, "あーあー！", 540, 330, 0.3, lt, 100, (240, 120, 150), rot=-6)
         hearts(f, lt, 200, 880, 1300)
@@ -335,13 +330,7 @@ MUSIC = ROOT / "assets" / "sounds" / "bgm.mp3"  # 置いてあれば小さく流
 def build_audio(segs, total, path):
     mix = load_loop(AMBIENCE, total, 0.024)
     if MUSIC.exists():
-        music = load_loop(MUSIC, total, 0.03)
-        # 赤ちゃんと犬・エンディングはKlingの音楽を使うので、その前にBGMをフェードアウト
-        t15 = next(s["t0"] for s in segs if s["id"] == "C15")
-        a, b = int((t15 - 0.8) * SR), int(t15 * SR)
-        music[a:b] *= np.linspace(1, 0, b - a)
-        music[b:] = 0
-        mix += music
+        mix += load_loop(MUSIC, total, 0.03)
     duck = np.ones_like(mix)
     voices = np.zeros_like(mix)
     def clip_audio(src, start, length, speed):
