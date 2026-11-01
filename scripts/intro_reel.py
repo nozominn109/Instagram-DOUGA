@@ -103,6 +103,17 @@ def big_text(f, lines, y, lt, size=96, color=(240, 110, 150), t0=0.0):
         paste(f, im2, W / 2 - im2.width / 2, y + i * (sz + 30) + (im.height - im2.height) / 2, min(1, (lt - t0) / 0.2))
 
 
+@lru_cache(None)
+def emoji(ch, size):
+    """カラー絵文字を1文字ぶん画像にする。"""
+    from PIL import ImageFont
+    fnt = ImageFont.truetype("/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf", 109)
+    im = Image.new("RGBA", (160, 160), (0, 0, 0, 0))
+    ImageDraw.Draw(im).text((80, 80), ch, font=fnt, embedded_color=True, anchor="mm")
+    im = im.crop(im.getbbox())
+    return im.resize((int(im.width * size / im.height), size), Image.LANCZOS)
+
+
 def name_tag(f, name, lt):
     x, y = W / 2, 1500
     k = back_out((lt - 0.12) / 0.25)
@@ -116,6 +127,14 @@ def name_tag(f, name, lt):
     cx = w / 2
     if RUBY[name]:
         outlined(d, (cx, 52), RUBY[name], rf, CHAR_COLOR[name], sw=8, anchor="mm")
+    elif name == "チャッピー":  # ふりがなの代わりに「愛犬🐶❤️」
+        tw = lf.getlength("愛犬")
+        e1, e2 = emoji("🐶", 58), emoji("❤️", 50)
+        total = tw + 10 + e1.width + 6 + e2.width
+        x0 = cx - total / 2
+        outlined(d, (x0, 50), "愛犬", lf, CHAR_COLOR[name], sw=9, anchor="lm")
+        im.alpha_composite(e1, (int(x0 + tw + 10), int(50 - e1.height / 2)))
+        im.alpha_composite(e2, (int(x0 + tw + 16 + e1.width), int(50 - e2.height / 2)))
     outlined(d, (cx, 170), name, fnt, (255, 255, 255), stroke=CHAR_COLOR[name], sw=14, anchor="mm")
     if label:
         lx = cx - nw / 2 - 16 if side == "left" else cx + nw / 2 + 16
