@@ -218,13 +218,13 @@ def logo():
 def end_card():
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
-    d.rounded_rectangle((60, 1130, W - 60, 1560), 48, fill=(255, 252, 245, 238), outline=(240, 170, 150), width=6)
-    d.text((W / 2, 1205), "AIは「丸投げ」じゃなく", font=font(60), fill=INK, anchor="mm")
-    outlined(d, (W / 2, 1310), "「相棒」に。", font(104), (236, 92, 108), sw=8, anchor="mm")
-    d.text((W / 2, 1425), "プロンプトは保存して", font=font(44, FONT_B), fill=INK, anchor="mm")
-    d.text((W / 2, 1490), "親子で試してみてね！", font=font(44, FONT_B), fill=INK, anchor="mm")
-    d.rounded_rectangle((180, 1650, W - 180, 1750), 50, fill=(236, 120, 140, 245))
-    d.text((W / 2, 1700), "フォローで田中家の続きを見る", font=font(44), fill=(255, 255, 255), anchor="mm")
+    d.rounded_rectangle((60, 980, W - 60, 1430), 48, fill=(255, 252, 245, 238), outline=(240, 170, 150), width=6)
+    d.text((W / 2, 1040), "AIは「丸投げ」じゃなく", font=font(60), fill=INK, anchor="mm")
+    outlined(d, (W / 2, 1130), "「相棒」に。", font(92), (236, 92, 108), sw=8, anchor="mm")
+    d.text((W / 2, 1218), "プロンプトは保存して", font=font(44, FONT_B), fill=INK, anchor="mm")
+    d.text((W / 2, 1270), "親子で試してみてね！", font=font(44, FONT_B), fill=INK, anchor="mm")
+    d.rounded_rectangle((180, 1315, W - 180, 1405), 50, fill=(236, 120, 140, 245))
+    d.text((W / 2, 1360), "フォローで田中家の続きを見る", font=font(44), fill=(255, 255, 255), anchor="mm")
     return layer
 
 
@@ -267,10 +267,10 @@ def decorate(f, seg, lt):
     elif cid == "END" and lt > 0.6:
         k = lt - 0.6
         paste(f, end_card(), 0, (1 - back_out(k / 0.5)) * 80, min(1, k / 0.3))
-        sparkles(f, lt, 540, 1340, 500, 10, seed=12)
+        sparkles(f, lt, 540, 1200, 500, 10, seed=12)
 
     if cid not in ("C05", "C11", "END"):
-        paste(f, logo(), 28, 64)
+        paste(f, logo(), 50, 300)  # 上15%（アカウント名・AIラベル）を避ける
     if seg["sub"] and seg["delay"] - 0.05 <= lt < vend + 0.1:
         im = sub_img(seg["speaker"], seg["sub"])
         k = ease((lt - seg["delay"] + 0.05) / 0.15)

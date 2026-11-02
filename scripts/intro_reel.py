@@ -86,7 +86,7 @@ def card_frames(name, dur):
         k = back_out(lt / 0.3)
         s = 0.6 + 0.4 * k
         im2 = im.resize((max(1, int(im.width * s)), max(1, int(im.height * s))), Image.BILINEAR) if s < 0.999 else im
-        bottom = 1380
+        bottom = 1200
         paste(f, im2, W / 2 - im2.width / 2, bottom - im2.height + math.sin(lt * 5) * 6, min(1, lt / 0.12))
         yield f
 
@@ -115,7 +115,7 @@ def emoji(ch, size):
 
 
 def name_tag(f, name, lt):
-    x, y = W / 2, 1500
+    x, y = W / 2, 1330
     k = back_out((lt - 0.12) / 0.25)
     fnt, rf, lf = font(120), font(48), font(60)
     nw = fnt.getlength(name)
@@ -150,25 +150,25 @@ def decorate(f, scene, lt, dur, voice_len):
         sparkles(f, lt, 540, 1250, 420, 10, seed=2)
     elif scene == "line":
         if lt > 0.2 and (voice_len is None or lt < 0.25 + voice_len + 0.2):
-            paste(f, sub_img("aina", LINE), 0, 1360 - sub_img("aina", LINE).height / 2, ease((lt - 0.2) / 0.15))
+            paste(f, sub_img("aina", LINE), 0, 1200 - sub_img("aina", LINE).height / 2, ease((lt - 0.2) / 0.15))
     elif scene == "outro":
         layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         d = ImageDraw.Draw(layer)
-        d.rounded_rectangle((60, 1080, W - 60, 1580), 48, fill=(255, 252, 245, 238), outline=(240, 170, 150), width=6)
-        outlined(d, (W / 2 - 40, 1180), "AIは、", font(70), (120, 96, 84), sw=8, anchor="rm")
-        outlined(d, (W / 2 - 40, 1172), "相棒。", font(100), (240, 110, 150), sw=9, anchor="lm")
-        d.text((W / 2, 1290), "〜田中家の「どう使う？」〜", font=font(48, FONT_B), fill=INK, anchor="mm")
-        d.text((W / 2, 1400), "平日20時に更新", font=font(64), fill=(236, 120, 140), anchor="mm")
-        d.rounded_rectangle((200, 1640, W - 200, 1750), 55, fill=(236, 120, 140, 245))
-        d.text((W / 2, 1695), "フォローしてね", font=font(56), fill=(255, 255, 255), anchor="mm")
+        d.rounded_rectangle((60, 1030, W - 60, 1425), 48, fill=(255, 252, 245, 238), outline=(240, 170, 150), width=6)
+        outlined(d, (W / 2 - 40, 1100), "AIは、", font(70), (120, 96, 84), sw=8, anchor="rm")
+        outlined(d, (W / 2 - 40, 1092), "相棒。", font(100), (240, 110, 150), sw=9, anchor="lm")
+        d.text((W / 2, 1185), "〜田中家の「どう使う？」〜", font=font(48, FONT_B), fill=INK, anchor="mm")
+        d.text((W / 2, 1260), "平日20時に更新", font=font(56), fill=(236, 120, 140), anchor="mm")
+        d.rounded_rectangle((200, 1310, W - 200, 1405), 55, fill=(236, 120, 140, 245))
+        d.text((W / 2, 1357), "フォローしてね", font=font(56), fill=(255, 255, 255), anchor="mm")
         paste(f, layer, 0, (1 - back_out(lt / 0.5)) * 80, min(1, lt / 0.3))
-        sparkles(f, lt, 540, 1320, 480, 10, seed=12)
+        sparkles(f, lt, 540, 1220, 480, 10, seed=12)
         if lt > dur - 0.4:
             f = Image.blend(f, Image.new("RGBA", (W, H), (255, 250, 240, 255)), ease((lt - dur + 0.4) / 0.4) * 0.5)
     else:
         name_tag(f, scene, lt)
     if scene not in ("hello", "outro"):
-        paste(f, logo(), 28, 64)
+        paste(f, logo(), 50, 300)
     return f
 
 
