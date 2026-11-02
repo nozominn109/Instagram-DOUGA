@@ -74,7 +74,7 @@ def card_bg():
 @lru_cache(None)
 def char_img(name):
     im = Image.open(ROOT / "assets" / "characters_hires" / f"{CHAR_FILE[name]}.png").convert("RGBA")
-    h = 1150 if name not in ("希亜", "チャッピー") else 820
+    h = 660 if name not in ("希亜", "チャッピー") else 520  # 頭が上から18%より下に来る大きさ
     return im.resize((int(im.width * h / im.height), h), Image.LANCZOS)
 
 
@@ -86,7 +86,7 @@ def card_frames(name, dur):
         k = back_out(lt / 0.3)
         s = 0.6 + 0.4 * k
         im2 = im.resize((max(1, int(im.width * s)), max(1, int(im.height * s))), Image.BILINEAR) if s < 0.999 else im
-        bottom = 1200
+        bottom = 1210
         paste(f, im2, W / 2 - im2.width / 2, bottom - im2.height + math.sin(lt * 5) * 6, min(1, lt / 0.12))
         yield f
 
@@ -168,7 +168,10 @@ def decorate(f, scene, lt, dur, voice_len):
     else:
         name_tag(f, scene, lt)
     if scene not in ("hello", "outro"):
-        paste(f, logo(), 50, 300)
+        if scene in CHAR_FILE:  # 名前紹介ではロゴを真ん中に（キャラの上）
+            paste(f, logo(), W / 2 - logo().width / 2 + 20, 360)
+        else:
+            paste(f, logo(), 50, 360)
     return f
 
 

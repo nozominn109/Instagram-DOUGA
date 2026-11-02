@@ -270,7 +270,7 @@ def decorate(f, seg, lt):
         sparkles(f, lt, 540, 1200, 500, 10, seed=12)
 
     if cid not in ("C05", "C11", "END"):
-        paste(f, logo(), 50, 300)  # 上15%（アカウント名・AIラベル）を避ける
+        paste(f, logo(), 50, 360)  # 上18%（リール／友達の表示・アカウント名・AIラベル）を避ける
     if seg["sub"] and seg["delay"] - 0.05 <= lt < vend + 0.1:
         im = sub_img(seg["speaker"], seg["sub"])
         k = ease((lt - seg["delay"] + 0.05) / 0.15)
