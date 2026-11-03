@@ -26,7 +26,7 @@ SCENES = [
     ("ask", "1_ask", 0.0, 1.0, 5.8),
     ("think", "2_think", 0.0, 0.73, 9.6),
     ("together", "ep01_C06", 0.0, 1.0, 2.6),
-    ("rules", "ep01_C06", 2.6, 0.45, 10.3) if PLAN == "A" else ("rules", "ep01_C06", 2.6, 0.6, 4.8),
+    ("rules", "ep01_C06", 2.6, 0.45, 9.7) if PLAN == "A" else ("rules", "ep01_C06", 2.6, 0.6, 4.8),
     ("point", "3_point", 0.0, 1.0, 5.2 if PLAN == "A" else 6.4),
     ("end", "3_point", 4.9, 1.0, 3.6),
 ]
@@ -37,16 +37,16 @@ VOICE = [
     ("think", "A2_aina", 0.2, 1.15, "aina", None),
     ("together", "A3cut_aina", 0.15, 1.1, "aina", "まず、\n一緒に使ってみよう！"),
 ] + ([
-    ("rules", "A5_aina", 0.3, 1.0, "aina", None),
-    ("rules", "R3_rina", 8.0, 1.1, "rina", "わかった！"),
+    ("rules", "A5cut_aina", 0.3, 1.0, "aina", None),
+    ("rules", "R3_rina", 7.45, 1.1, "rina", "わかった！"),
     ("point", "R2_rina", 0.15, 1.1, "rina", "じゃあ、ママも\nスマホ見すぎない！"),
 ] if PLAN == "A" else [
-    ("rules", "A5short_aina", 0.2, 1.0, "aina", "じゃあ、約束しよう。"),
+    ("rules", "A5short_aina", 0.2, 1.0, "aina", "約束しよう。"),
     ("point", "R4_rina", 0.1, 1.15, "rina", "うん！莉奈からも約束ね。\nじゃあ、ママもスマホ見すぎない！"),
 ]) + [
     ("point", "A4_aina", 3.4 if PLAN == "A" else 4.7, 1.0, "aina", "…はい"),
 ]
-RULE_T = [2.2, 5.0, 6.45] if PLAN == "A" else [1.4, 2.2, 3.0]  # 愛奈が①②③を言い始める秒（約束の場面の中）
+RULE_T = [1.65, 4.45, 5.9] if PLAN == "A" else [1.4, 2.2, 3.0]  # 愛奈が①②③を言い始める秒（約束の場面の中）
 THINK_SUBS = [(0.0, "怖いニュースもあるし、\n隠れて使われるのも不安だな……"), (4.2, "でも、\n使えないと困るだろうな……"),
               (6.6, "そっか、\n私も一緒に覚えればいいじゃん")]
 
