@@ -35,7 +35,7 @@ VOICE = [
     ("ask", "R1_rina", 0.2, 1.1, "rina", "ねえ、AI使っていい？\n友だちみんな使ってる"),
     ("ask", "A1_aina", 4.25, 1.0, "aina", "うーん…"),
     ("think", "A2_aina", 0.2, 1.15, "aina", None),
-    ("together", "A3_aina", 0.15, 1.1, "aina", "じゃあ、まず\n一緒に使ってみよう！"),
+    ("together", "A3cut_aina", 0.15, 1.1, "aina", "まず、\n一緒に使ってみよう！"),
 ] + ([
     ("rules", "A5_aina", 0.3, 1.0, "aina", None),
     ("rules", "R3_rina", 8.0, 1.1, "rina", "わかった！"),
