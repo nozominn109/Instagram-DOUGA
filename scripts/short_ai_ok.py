@@ -16,7 +16,9 @@ from render import FONT_B, INK, back_out, ease, font, outlined, paste, phone_scr
 
 KIT = ROOT / "output" / "short02_ai_ok"
 CLIPS, VOICES = KIT / "clips", KIT / "voices"
-OUT = KIT / "short02_ai_ok.mp4"
+import sys
+PLAN = "B" if "B" in sys.argv[1:] else "A"
+OUT = KIT / f"short02_ai_ok_{PLAN}.mp4"
 RULES = ["① 名前・学校・住所は入れない", "② 答えをもらうより、質問してもらう", "③ 困ったら家族に見せる"]
 
 # 場面: (名前, 動画, 開始秒, 再生の速さ, 長さ)
@@ -24,8 +26,8 @@ SCENES = [
     ("ask", "1_ask", 0.0, 1.0, 5.8),
     ("think", "2_think", 0.0, 0.73, 9.6),
     ("together", "ep01_C06", 0.0, 1.0, 2.6),
-    ("rules", "ep01_C06", 2.6, 0.6, 4.6),
-    ("point", "3_point", 0.0, 1.0, 5.2),
+    ("rules", "ep01_C06", 2.6, 0.45, 10.3) if PLAN == "A" else ("rules", "ep01_C06", 2.6, 0.6, 4.8),
+    ("point", "3_point", 0.0, 1.0, 5.2 if PLAN == "A" else 6.4),
     ("end", "3_point", 4.9, 1.0, 3.6),
 ]
 # 声: (場面, ファイル, 場面の中で始まる秒, 速さ, 話す人, 字幕)
@@ -34,9 +36,17 @@ VOICE = [
     ("ask", "A1_aina", 4.25, 1.0, "aina", "うーん…"),
     ("think", "A2_aina", 0.2, 1.15, "aina", None),
     ("together", "A3_aina", 0.15, 1.1, "aina", "じゃあ、まず\n一緒に使ってみよう！"),
+] + ([
+    ("rules", "A5_aina", 0.3, 1.0, "aina", None),
+    ("rules", "R3_rina", 8.0, 1.1, "rina", "わかった！"),
     ("point", "R2_rina", 0.15, 1.1, "rina", "じゃあ、ママも\nスマホ見すぎない！"),
-    ("point", "A4_aina", 3.4, 1.0, "aina", "…はい"),
+] if PLAN == "A" else [
+    ("rules", "A5short_aina", 0.2, 1.0, "aina", "じゃあ、約束しよう。"),
+    ("point", "R4_rina", 0.1, 1.15, "rina", "うん！莉奈からも約束ね。\nじゃあ、ママもスマホ見すぎない！"),
+]) + [
+    ("point", "A4_aina", 3.4 if PLAN == "A" else 4.7, 1.0, "aina", "…はい"),
 ]
+RULE_T = [2.2, 5.0, 6.45] if PLAN == "A" else [1.4, 2.2, 3.0]  # 愛奈が①②③を言い始める秒（約束の場面の中）
 THINK_SUBS = [(0.0, "怖いニュースもあるし、\n隠れて使われるのも不安だな……"), (4.2, "でも、\n使えないと困るだろうな……"),
               (6.6, "そっか、\n私も一緒に覚えればいいじゃん")]
 
@@ -93,16 +103,16 @@ def decorate(f, scene, lt, dur, vstart):
     elif scene == "rules":
         layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         d = ImageDraw.Draw(layer)
-        d.rounded_rectangle((60, 520, W - 60, 1400), 48, fill=(255, 252, 245, 238), outline=(240, 170, 150), width=6)
-        outlined(d, (W / 2, 630), "田中家のAIの約束", font(72), (236, 92, 108), sw=8, anchor="mm")
+        d.rounded_rectangle((60, 500, W - 60, 1190), 48, fill=(255, 252, 245, 238), outline=(240, 170, 150), width=6)
+        outlined(d, (W / 2, 600), "田中家のAIの約束", font(72), (236, 92, 108), sw=8, anchor="mm")
         paste(f, layer, 0, (1 - back_out(lt / 0.4)) * 60, min(1, lt / 0.25))
         for i, r in enumerate(RULES):
-            t0 = 0.5 + i * 0.9
+            t0 = RULE_T[i]
             if lt >= t0:
                 im = Image.new("RGBA", (W, 140), (0, 0, 0, 0))
                 ImageDraw.Draw(im).text((110, 70), r, font=font(50), fill=INK, anchor="lm")
-                paste(im if False else f, im, (1 - ease((lt - t0) / 0.3)) * 60, 760 + i * 190, min(1, (lt - t0) / 0.25))
-        sparkles(f, lt, 540, 960, 460, 8, seed=3)
+                paste(im if False else f, im, (1 - ease((lt - t0) / 0.3)) * 60, 700 + i * 160, min(1, (lt - t0) / 0.25))
+        sparkles(f, lt, 540, 850, 460, 8, seed=3)
     elif scene == "end":
         layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         d = ImageDraw.Draw(layer)
