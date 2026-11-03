@@ -35,7 +35,7 @@ VOICE = [
     ("phone", "S3_ai", 0.9, 1.1, "ai", None),
     ("think", "S4_aina", 0.5, 1.12, "aina", "そうだ、私、子どもの頃そうだった。\n聞かれると、\n信用されてないみたいで嫌だった"),
     ("cookie", "S5_aina", 0.15, 1.1, "aina", "おかえり。\nこれ好きだったよね"),
-    ("cookie", "S6_sora", 2.45, 1.0, "sora", "…ありがと。\nあのさ、今日さ…"),
+    ("cookie", "S6_sora", 2.6, 1.0, "sora", "…ありがと。\nあのさ、今日さ…"),
 ]
 
 
@@ -63,7 +63,7 @@ def clip_frames(clip, start, speed, dur, blur=False):
     p.wait()
 
 
-def text_block(f, lines, y, lt, t0=0.0):
+def text_block(f, lines, y, lt, t0=0.0, cx=W / 2):
     """白ふちの大きな文字（何行か）をポンと出す。"""
     k = back_out((lt - t0) / 0.3)
     if k <= 0:
@@ -73,17 +73,17 @@ def text_block(f, lines, y, lt, t0=0.0):
         outlined(ImageDraw.Draw(im), (W / 2, (size + 60) / 2), txt, font(size), col, sw=12, anchor="mm")
         s = max(0.05, k)
         im2 = im.resize((max(1, int(W * s)), max(1, int(im.height * s))), Image.BILINEAR) if s < 0.999 else im
-        paste(f, im2, W / 2 - im2.width / 2, y + i * (size + 24) + (im.height - im2.height) / 2,
+        paste(f, im2, cx - im2.width / 2, y + i * (size + 24) + (im.height - im2.height) / 2,
               min(1, (lt - t0) / 0.2))
 
 
 def decorate(f, scene, lt, dur, vstart):
     if scene == "door":
         if lt < 2.0:  # 1コマ目から悩みの問い
-            text_block(f, [("「今日どうだった？」", 70, (120, 96, 84)), ("→「別に」…", 96, (236, 92, 108))], 560, lt)
+            text_block(f, [("「今日どうだった？」", 54, (120, 96, 84)), ("→「別に」…", 80, (236, 92, 108))], 780, lt, cx=740)
         if lt > 3.4:  # 愛奈の心の声
-            text_block(f, [("（なんでそんな返事しか", 56, (150, 110, 200)), ("できないの…）", 56, (150, 110, 200))],
-                       600, lt, 3.4)
+            text_block(f, [("（なんでそんな返事しか", 52, (150, 110, 200)), ("できないの…）", 52, (150, 110, 200))],
+                       800, lt, 3.4, cx=740)
     elif scene == "phone":
         ai_t = lt - vstart["phone"]
         shown_me = int(len(ASK) * min(1, lt / 0.8))
@@ -94,7 +94,7 @@ def decorate(f, scene, lt, dur, vstart):
         f.alpha_composite(layer, (0, 170))  # 上18%（インスタの表示）を避けて少し下げる
     elif scene == "think":
         if lt < 0.6:
-            text_block(f, [("はっ…", 90, (150, 110, 200))], 560, lt, 0.05)
+            text_block(f, [("はっ…！", 84, (150, 110, 200))], 520, lt, 0.05, cx=840)
     elif scene == "end":
         layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         d = ImageDraw.Draw(layer)
@@ -111,15 +111,21 @@ def decorate(f, scene, lt, dur, vstart):
     for sc, name, st, tempo, sp, text in VOICE:
         if sc == scene and text:
             vlen = VLEN[name]
-            if st - 0.05 <= lt < st + vlen + 0.15:
+            if st - 0.05 <= lt < st + vlen + 0.05:
                 im = sub_img(sp, text)
                 paste(f, im, 0, 1300 - im.height / 2, ease((lt - st + 0.05) / 0.15))
-    if scene not in ("phone", "end"):
-        paste(f, logo(), 50, 360)
+    if scene not in ("phone", "end"):  # ロゴは人物の顔にかからない側に（上18%より下）
+        lg = small_logo()
+        paste(f, lg, 40 if scene == "door" else W - lg.width - 50, 350)
     return f
 
 
 VLEN = {}
+
+
+def small_logo():
+    lg = logo()
+    return lg.resize((int(lg.width * 0.78), int(lg.height * 0.78)), Image.LANCZOS)
 
 
 def main():
