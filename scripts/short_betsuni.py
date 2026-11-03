@@ -116,7 +116,7 @@ def decorate(f, scene, lt, dur, vstart):
                 paste(f, im, 0, 1300 - im.height / 2, ease((lt - st + 0.05) / 0.15))
     if scene not in ("phone", "end"):  # ロゴは人物の顔にかからない側に（上18%より下）
         lg = small_logo()
-        paste(f, lg, 40 if scene == "door" else W - lg.width - 50, 350)
+        paste(f, lg, 30, 300)
     return f
 
 
@@ -125,7 +125,7 @@ VLEN = {}
 
 def small_logo():
     lg = logo()
-    return lg.resize((int(lg.width * 0.78), int(lg.height * 0.78)), Image.LANCZOS)
+    return lg.resize((int(lg.width * 0.62), int(lg.height * 0.62)), Image.LANCZOS)
 
 
 def main():
