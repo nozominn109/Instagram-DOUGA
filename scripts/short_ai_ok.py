@@ -47,8 +47,13 @@ VOICE = [
     ("point", "A4_aina", 3.4 if PLAN == "A" else 4.7, 1.0, "aina", "…はい"),
 ]
 RULE_T = [1.65, 4.45, 5.9] if PLAN == "A" else [1.4, 2.2, 3.0]  # 愛奈が①②③を言い始める秒（約束の場面の中）
+GS = 1.15  # 全体のテンポ（声・動画・文字のタイミングを同じだけ速くする）
+SCENES = [(n, c, st, sp * GS, d / GS) for n, c, st, sp, d in SCENES]
+VOICE = [(sc, n, st / GS, tp * GS, spk, tx) for sc, n, st, tp, spk, tx in VOICE]
+RULE_T = [t / GS for t in RULE_T]
 THINK_SUBS = [(0.0, "怖いニュースもあるし、\n隠れて使われるのも不安だな……"), (4.2, "でも、\n使えないと困るだろうな……"),
               (6.6, "そっか、\n私も一緒に覚えればいいじゃん")]
+THINK_SUBS = [(t / GS, x) for t, x in THINK_SUBS]
 
 
 def voice(name, tempo):
