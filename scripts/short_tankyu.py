@@ -32,7 +32,7 @@ SCENES = [
     ("ball", "ball", 0.0, [("T7_rina", "rina", "やっぱり！\n動くものが好きなんだ！"),
                            ("T8_aina", "aina", "すごい、\n自分で確かめたね")], 0.6, 0.1),
     ("omoi", "ep01_C09", 0.0, [("T11_aina", "aina", "答えを教えてもらうより、\n自分で見つけたほうが、\nずっと楽しいよね")], 0.1, 0.25),
-    ("end", "ball", 4.0, [], 3.0, 0.0),
+    ("end", "ball", 4.0, [], 3.4, 0.0),
 ]
 THINK_SUBS = [(0.0, "怖いニュースもあるし、\n隠れて使われるのも不安だな……"), (0.4, "でも、\n使えないと困るだろうな……"),
               (0.62, "そっか、\n私も一緒に覚えればいいじゃん")]  # 声の長さに対する割合
@@ -120,9 +120,9 @@ def decorate(f, sc, lt):
         d.rounded_rectangle((60, 960, W - 60, 1420), 48, fill=(255, 252, 245, 238), outline=(240, 170, 150), width=6)
         d.text((W / 2, 1040), "答えより、", font=font(60), fill=INK, anchor="mm")
         outlined(d, (W / 2, 1148), "“知りたい”を育てる。", font(78), (236, 92, 108), sw=8, anchor="mm")
-        d.text((W / 2, 1258), "田中家の続きは平日20時", font=font(44, FONT_B), fill=INK, anchor="mm")
-        d.rounded_rectangle((220, 1308, W - 220, 1393), 42, fill=(236, 120, 140, 245))
-        d.text((W / 2, 1350), "フォローしてね", font=font(46), fill=(255, 255, 255), anchor="mm")
+        d.text((W / 2, 1250), "明日、莉奈の“なんで？”はまだ続く…", font=font(44, FONT_B), fill=INK, anchor="mm")
+        d.rounded_rectangle((150, 1308, W - 150, 1393), 42, fill=(236, 120, 140, 245))
+        d.text((W / 2, 1350), "続きは明日20時。フォローしてね", font=font(40), fill=(255, 255, 255), anchor="mm")
         paste(f, layer, 0, (1 - back_out(lt / 0.5)) * 80, min(1, lt / 0.3))
         sparkles(f, lt, 540, 1190, 480, 10, seed=7)
         if lt > dur - 0.4:
