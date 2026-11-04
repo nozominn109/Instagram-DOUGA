@@ -19,7 +19,7 @@ from short_ai_ok import small_logo, text_block
 KIT = ROOT / "output" / "short02b_tankyu"
 CLIPS, VOICES = KIT / "clips", KIT / "voices"
 OUT = KIT / "short02b_tankyu.mp4"
-TEMPO = 1.1 * 1.15  # 決まったテンポ（声1.1倍×全体1.15倍）
+TEMPO = 1.1 * 1.15 * 1.1  # 決まったテンポ（声1.1倍×全体1.15倍）をさらに1.1倍（11/4 希さん）
 GAP = 0.06  # セリフとセリフの間
 
 # 場面: (名前, 動画, 動画の開始秒, [(声, 話す人, 字幕), ...], 前の余白, 後ろの余白)
