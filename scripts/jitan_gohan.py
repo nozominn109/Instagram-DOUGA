@@ -23,9 +23,9 @@ TEMPO = 1.3
 POINT = "2_point" if (CLIPS / "2_point.mp4").exists() else "1_table"
 
 # 顔のアップ: (中心x, 中心y, 拡大率)  ※1_table.mp4（1080x1916）の座標
-FACE = {"wide": (540, 958, 1.0), "sora": (420, 760, 2.3), "rina": (640, 780, 2.3), "satoru": (190, 760, 2.3),
-        "aina": (860, 520, 2.0), "chappy": (530, 1390, 2.4), "point_wide": (380, 820, 1.6), "end_wide": (540, 900, 1.15), "aina_smile": (620, 800, 2.1),
-        "satoru_p": (380, 640, 1.9), "aina_p": (860, 560, 1.8)}
+FACE = {"wide": (540, 958, 1.0), "sora": (420, 800, 1.5), "rina": (620, 820, 1.5), "satoru": (300, 820, 1.5),
+        "aina": (800, 700, 1.5), "chappy": (530, 1300, 1.5), "point_wide": (420, 860, 1.35), "end_wide": (540, 900, 1.15), "aina_smile": (600, 860, 1.5),
+        "satoru_p": (420, 760, 1.5), "aina_p": (860, 560, 1.8)}
 
 # 場面: (名前, 動画, 顔, [(声, 話す人, 字幕, 場面内の開始秒)], 長さ)
 SCENES = [
@@ -61,7 +61,7 @@ def frames(clip, start, dur, face, blur=False):
     x0 = min(max(int(cx - cw / 2), 0), 1080 - cw)
     y0 = min(max(int(cy - ch / 2), 0), 1916 - ch)
     vf = (f"trim=start={start},setpts=PTS-STARTPTS,fps={FPS},crop={cw}:{ch}:{x0}:{y0},"
-          f"scale={W}:{H}:flags=lanczos")
+          f"scale={W}:{H}:flags=lanczos,unsharp=5:5:0.6")
     p = subprocess.Popen(["ffmpeg", "-v", "error", "-i", str(CLIPS / f"{clip}.mp4"), "-vf", vf, "-f", "rawvideo",
                           "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE)
     n, last = W * H * 3, None
