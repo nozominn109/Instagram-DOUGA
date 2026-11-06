@@ -80,8 +80,9 @@ def frames(clip, start, dur, face, blur=False):
 def decorate(f, sc, lt, vo):
     name, dur = sc["name"], sc["dur"]
     if name == "open":
-        text_block(f, [("毎日の", 60, (120, 96, 84)), ("「今日のごはん何？」", 80, (236, 92, 108)),
-                       ("問題…", 60, (120, 96, 84))], 1000, lt)
+        text_block(f, [("毎日の", 60, (120, 96, 84))], 960, lt)
+        text_block(f, [("「今日のごはん何？」", 80, (236, 92, 108))], 1050, lt)
+        text_block(f, [("問題…", 60, (120, 96, 84))], 1160, lt)
     if name == "phone":
         k = min(1, max(0, lt - 0.7) / 1.2)
         msgs = [("me", ASK, 99, (), 0)]
