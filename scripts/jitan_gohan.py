@@ -24,7 +24,7 @@ POINT = "2_point" if (CLIPS / "2_point.mp4").exists() else "1_table"
 
 # 顔のアップ: (中心x, 中心y, 拡大率)  ※1_table.mp4（1080x1916）の座標
 FACE = {"wide": (540, 958, 1.0), "sora": (420, 760, 2.3), "rina": (640, 780, 2.3), "satoru": (190, 760, 2.3),
-        "aina": (860, 520, 2.0), "chappy": (530, 1390, 2.4), "point_wide": (380, 820, 1.6), "end_wide": (540, 900, 1.15),
+        "aina": (860, 520, 2.0), "chappy": (530, 1390, 2.4), "point_wide": (380, 820, 1.6), "end_wide": (540, 900, 1.15), "aina_smile": (620, 800, 2.1),
         "satoru_p": (380, 640, 1.9), "aina_p": (860, 560, 1.8)}
 
 # 場面: (名前, 動画, 顔, [(声, 話す人, 字幕, 場面内の開始秒)], 長さ)
@@ -33,12 +33,12 @@ SCENES = [
     ("sora", "1_table", "sora", [("G1_sora", "sora", "肉！", 0.05)], 0.8),
     ("rina", "1_table", "rina", [("G2_rina", "rina", "パスタ！", 0.05)], 0.95),
     ("satoru", "1_table", "satoru", [("G3_satoru", "satoru", "…なんでもいい", 0.05)], 1.05),
-    ("aina", "1_table", "aina", [("G4_aina", "aina", "それがいちばん困るの！", 0.05)], 1.9),
+    ("aina", "2_point", "aina_smile", [("G4_aina", "aina", "それがいちばん困るの！", 0.05)], 1.9),
     ("wan", "1_table", "chappy", [("C16_chappy", "chappy", "ワン！", 0.0)], 0.8),
     ("phone", None, None, [], 2.6),
     ("point", POINT, "point_wide", [("G5_rina", "rina", "これ！", 0.15), ("G6_sora", "sora", None, 0.2)], 1.5),
     ("dish", POINT, "satoru_p", [("G7_satoru", "satoru", "…で、俺は何すればいい？", 0.05)], 2.15),
-    ("dish2", "1_table", "aina_p", [("G8_aina", "aina", "お皿洗い", 0.05)], 1.5),
+    ("dish2", "2_point", "aina_smile", [("G8_aina", "aina", "お皿洗い", 0.05)], 1.5),
     ("end", POINT, "end_wide", [], 2.0),
 ]
 ASK = "冷蔵庫に鶏肉・キャベツ・パスタ。家族の希望は「肉」「パスタ」「なんでもいい」。15分で作れる夕飯を3つ"
