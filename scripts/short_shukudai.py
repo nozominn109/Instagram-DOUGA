@@ -19,7 +19,7 @@ from short_yuhan import bubble
 KIT = ROOT / "output" / "short05_shukudai"
 CLIPS, VOICES = KIT / "clips", KIT / "voices"
 OUT = KIT / "short05_shukudai.mp4"
-TEMPO = 1.35
+TEMPO = 1.5
 
 # 顔のアップ: (中心x, 中心y, 拡大率)  ※1080x1916 の座標
 FACE = {"two": (560, 900, 1.15), "aina": (780, 760, 1.5), "rina_w": (440, 980, 1.4), "two3": (560, 880, 1.15),
@@ -33,19 +33,19 @@ Q = ("3日間で読んだページは", "12・15・18ページ。", "1日平均�
 SCENES = [
     ("open", "1_drill", 0.0, "two", [("H1_rina", "rina", "AIに答え聞いちゃお", 0.4)], 0.0),
     ("wait", "1_drill", 2.4, "aina", [("H2_aina", "aina", "待って。聞き方を変えてみよう", 0.05)], 0.0),
-    ("phone", None, 0.0, None, [("H3_ai", "ai", None, 1.0)], 0.0),
+    ("phone", None, 0.0, None, [("H3_ai", "ai", None, 0.8)], 0.0),
     ("write", "2_write", 0.0, "rina_w", [("H4_rina", "rina", "12＋15＋18で…45！\nそれを3日で分けると…15！", 0.2)], 0.0),
     ("yatta", "3_yatta", 0.3, "two3", [("H5_rina", "rina", "自分で解けた！", 0.05),
                                         ("H6_aina", "aina", "すごいじゃん！", 0.1)], 0.0),
-    ("omoi", "3_yatta", 3.0, "aina3", [], 2.2),
+    ("omoi", "3_yatta", 3.0, "aina3", [], 2.0),
     ("end", "3_yatta", 4.0, "two3", [], 3.0),
 ]
 
 
 def voice(name):
     if name == "H4_rina":  # 「…」の間を残す（前後の無音だけ切る）
-        af = (f"silenceremove=start_periods=1:start_threshold=-38dB:stop_periods=-1:stop_duration=0.35:"
-              f"stop_threshold=-38dB:stop_silence=0.25,atempo={TEMPO}")
+        af = (f"silenceremove=start_periods=1:start_threshold=-38dB:stop_periods=-1:stop_duration=0.3:"
+              f"stop_threshold=-38dB:stop_silence=0.2,atempo={TEMPO}")
     else:
         af = (f"silenceremove=start_periods=1:start_threshold=-38dB:stop_periods=-1:stop_duration=0.2:"
               f"stop_threshold=-38dB:stop_silence=0.1,atempo={TEMPO}")
@@ -149,7 +149,7 @@ def main():
             lt += st
             timed.append((v, sp, sub, lt))
             lt += len(vo[v]) / SR
-        dur = max(dur, lt + 0.3)
+        dur = max(dur, lt + 0.25)
         scenes.append(dict(name=name, clip=clip, cst=cst, face=face, lines=timed, dur=dur, t0=t))
         t += dur
     total = t
