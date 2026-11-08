@@ -95,7 +95,7 @@ def decorate(f, sc, lt, vo):
     if name == "next":
         text_block(f, [("次の日", 64, (74, 170, 150))], 380, lt)
         if lt > 0.5:
-            bubble(f, "蒼：（プリントの写真）", lt - 0.5, 760, (74, 170, 150))
+            bubble(f, "蒼：（プリントの写真）", lt - 0.5, 1060, (74, 170, 150))  # 愛奈の顔を避けて胸のあたり
         if lt > 1.3:
             bubble(f, "自分で決めたことは、\nちゃんと続くんだね", lt - 1.3, 1330)
     if name == "end":
@@ -116,7 +116,8 @@ def decorate(f, sc, lt, vo):
         ln = len(vo[v]) / SR
         if sub and st - 0.03 <= lt < st + ln + 0.08:
             im = sub_img(sp, sub)
-            paste(f, im, 0, 1300 - im.height / 2, ease((lt - st + 0.03) / 0.1))
+            y = 1020 if name == "papa" else 1300  # パパの場面は愛奈の顔を避けて上に
+            paste(f, im, 0, y - im.height / 2, ease((lt - st + 0.03) / 0.1))
     if name not in ("phone", "end"):
         paste(f, small_logo(), 30, 300)
     return f
