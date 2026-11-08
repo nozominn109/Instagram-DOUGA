@@ -18,7 +18,7 @@ from short_ai_ok import small_logo, text_block
 KIT = ROOT / "output" / "short04_yuhan"
 CLIPS, VOICES = KIT / "clips", KIT / "voices"
 OUT = KIT / "short04_yuhan.mp4"
-TEMPO = 1.4
+TEMPO = 1.25
 
 # 顔のアップ: (中心x, 中心y, 拡大率)  ※1080x1916 の座標
 FACE = {"wide": (540, 958, 1.0), "table": (540, 960, 1.12), "aina": (880, 820, 1.6), "sora": (420, 860, 1.5),
@@ -27,19 +27,19 @@ FACE = {"wide": (540, 958, 1.0), "table": (540, 960, 1.12), "aina": (880, 820, 1
 
 # 場面: (名前, 動画, 動画の開始秒, 顔, [(声, 話す人, 字幕, 場面内の開始秒)], 長さ)
 SCENES = [
-    ("open", "1_shiin", 0.0, "table", [], 1.6),
-    ("sora", "1_shiin", 2.0, "sora", [], 0.5),
-    ("rina", "1_shiin", 2.6, "rina", [], 0.5),
-    ("chappy", "1_shiin", 3.2, "chappy", [], 0.5),
-    ("secret", "2_phone", 0.0, "aina", [], 1.3),
+    ("open", "1_shiin", 0.0, "table", [], 2.0),
+    ("sora", "1_shiin", 2.0, "sora", [], 0.7),
+    ("rina", "1_shiin", 2.6, "rina", [], 0.7),
+    ("chappy", "1_shiin", 3.2, "chappy", [], 0.7),
+    ("secret", "2_phone", 0.0, "aina", [], 1.8),
     ("phone", None, 0.0, None, [("Y1_ai", "ai", None, 0.3)], 0.0),
-    ("hatt", "2_phone", 2.0, "aina", [], 2.0),
+    ("hatt", "2_phone", 2.0, "aina", [], 2.8),
     ("ask", "2_phone", 3.3, "aina", [("Y2_aina", "aina", "ねえ、1日だけ大人と子どもが\n入れかわったら、何する？", 0.05)], 0.0),
     ("talk", "3_talk", 0.0, "table", [("Y3_rina", "rina", "パパの会社行って寝る！", 0.05),
                                        ("Y4_satoru", "satoru", "バレるって！", 0.0),
                                        ("Y5_sora", "sora", "…学校休んで、一日中寝る", 0.15)], 0.0),
     ("omoi", "3_talk", 3.5, "aina", [("Y6_aina", "aina", "会話がないんじゃなくて、\nきっかけがなかっただけかも", 0.05)], 0.0),
-    ("end", "3_talk", 4.6, "table", [], 2.0),
+    ("end", "3_talk", 4.6, "table", [], 2.5),
 ]
 
 
@@ -118,8 +118,8 @@ def decorate(f, sc, lt, vo):
         text_block(f, [("ハッ！", 90, (150, 110, 200))], 380, lt)
         if lt > 0.25:  # 愛奈が金曜の「肉！」「パスタ！」を思い出す（吹き出し）
             bubble(f, "さっき献立決めるときは\n「肉！」「パスタ！」って\nみんな言ってたな…", lt - 0.25, 1180)
-        if lt > 1.05:
-            bubble(f, "“したいこと”なら、\nみんな話す！", lt - 1.05, 1430, (236, 92, 108))
+        if lt > 1.5:
+            bubble(f, "“したいこと”なら、\nみんな話す！", lt - 1.5, 1430, (236, 92, 108))
     if name == "end":
         f2 = f.filter(ImageFilter.GaussianBlur(10))
         f.alpha_composite(f2)
@@ -152,7 +152,7 @@ def main():
             lt += st
             timed.append((v, sp, sub, lt))
             lt += len(vo[v]) / SR
-        dur = max(dur, lt + 0.08)
+        dur = max(dur, lt + 0.25)
         scenes.append(dict(name=name, clip=clip, cst=cst, face=face, lines=timed, dur=dur, t0=t))
         t += dur
     total = t
