@@ -39,7 +39,7 @@ SCENES = [
                                        ("Y4_satoru", "satoru", "バレるって！", 0.0),
                                        ("Y5_sora", "sora", "…学校休んで、一日中寝る", 0.15)], 0.0),
     ("omoi", "3_talk", 3.5, "aina", [("Y6_aina", "aina", "会話がないんじゃなくて、\nきっかけがなかっただけかも", 0.05)], 0.0),
-    ("end", "3_talk", 4.6, "table", [], 2.5),
+    ("end", "3_talk", 4.6, "table", [], 3.0),
 ]
 
 
@@ -133,6 +133,8 @@ def decorate(f, sc, lt, vo):
         d.text((W / 2, 1340), "フォローしてね", font=font(44), fill=(255, 255, 255), anchor="mm")
         paste(f, layer, 0, (1 - back_out(lt / 0.4)) * 60, min(1, lt / 0.25))
         sparkles(f, lt, 540, 1190, 460, 8, seed=7)
+        if lt > 0.5:  # キャプションの告知
+            bubble(f, "AIへの相談の仕方は\nキャプションに書いたよ！保存してね", lt - 0.5, 800, (74, 170, 150))
     for v, sp, sub, st in sc["lines"]:
         ln = len(vo[v]) / SR
         if sub and st - 0.03 <= lt < st + ln + 0.08:
