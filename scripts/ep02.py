@@ -20,11 +20,11 @@ from short_yuhan import bubble
 KIT = ROOT / "output" / "ep02"
 CLIPS, VOICES = KIT / "clips", KIT / "voices"
 OUT = KIT / "ep02.mp4"
-TEMPO = 1.4
+TEMPO = 1.5
 
 # 顔のアップ: (中心x, 中心y, 拡大率)  ※1080x1916 の座標
 FACE = {"rouka": (700, 820, 1.25), "door": (700, 700, 1.5), "papa_up": (360, 560, 1.4),
-        "three": (540, 820, 1.12), "papa_aina": (420, 720, 1.4), "rina": (820, 760, 1.5), "aina": (540, 700, 1.6),
+        "three": (540, 820, 1.12), "papa_aina": (420, 720, 1.4), "rina": (820, 760, 1.5), "aina": (575, 660, 2.0),
         "walk": (540, 960, 1.0), "walk_near": (520, 760, 1.35), "walk_sora": (660, 700, 1.6),
         "okaeri": (540, 960, 1.05)}
 
@@ -106,11 +106,11 @@ def decorate(f, sc, lt, vo):
             text_block(f, [("ハッ…", 84, (150, 110, 200))], 1630, lt, st + ln * 0.85)
     if name == "omoi":  # 心の声（吹き出し）
         st = sc["lines"][0][3]
-        if lt > st - 0.2:
-            bubble(f, "向かい合って聞かれると、\n言えなかった。", lt - st + 0.2, 1120, (150, 110, 200))
-        if lt > st + len(vo["E6_aina"]) / SR * 0.5:
-            bubble(f, "並んで歩いてるときは、\n話せたな", lt - st - len(vo["E6_aina"]) / SR * 0.5, 1400,
-                   (150, 110, 200))
+        sw = st + len(vo["E6_aina"]) / SR * 0.5  # 1つ目→2つ目に切りかえ（顔にかからないよう同じ場所に1つずつ）
+        if st - 0.2 < lt <= sw:
+            bubble(f, "向かい合って聞かれると、\n言えなかった。", lt - st + 0.2, 1290, (150, 110, 200))
+        if lt > sw:
+            bubble(f, "並んで歩いてるときは、\n話せたな", lt - sw, 1290, (150, 110, 200))
     if name == "end":
         f.alpha_composite(f.filter(ImageFilter.GaussianBlur(10)) if lt > 2.0 else f)
         if lt > 2.0:
@@ -185,7 +185,7 @@ def main():
         if s["clip"]:
             src = frames(s["clip"], s["cst"], s["dur"], s["face"])
         else:
-            src = frames("3_living", 1.0, s["dur"], "three", blur=True)
+            src = frames("3_living", 1.0, s["dur"], "aina", blur=True)
         for i, f in enumerate(src):
             proc.stdin.write(decorate(f, s, i / FPS, vo).convert("RGB").tobytes())
     proc.stdin.close()
