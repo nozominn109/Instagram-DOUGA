@@ -24,7 +24,7 @@ TEMPO = 1.5
 
 # 顔のアップ: (中心x, 中心y, 拡大率)  ※1080x1916 の座標
 FACE = {"rouka": (700, 820, 1.25), "door": (700, 700, 1.5), "papa_up": (360, 560, 1.4),
-        "three": (540, 820, 1.12), "papa_aina": (420, 720, 1.4), "rina": (820, 760, 1.5), "aina": (575, 660, 2.0),
+        "three": (540, 820, 1.12), "aup": (540, 900, 1.08), "papa_aina": (420, 720, 1.4), "rina": (820, 760, 1.5), "aina": (575, 660, 2.0),
         "walk": (540, 960, 1.0), "walk_near": (520, 760, 1.35), "walk_sora": (660, 700, 1.6),
         "okaeri": (540, 960, 1.05)}
 
@@ -39,8 +39,8 @@ SCENES = [
     ("hiso", "3_living", 0.0, "papa_aina", [("E3_satoru", "satoru", "蒼、AIに相談してるっぽいぞ。\n僕たちには何も言わないのに", 0.1)], 0.0),
     ("rina", "3_living", 2.6, "rina", [("E4_rina", "rina", "AIのほうが話しやすいんじゃない？\n怒らないし", 0.05)], 0.0),
     ("phone", None, 0.0, None, [("E5_ai", "ai", None, 1.1)], 0.0),
-    ("omoi", "3_living_b", 0.3, "aina", [("E6_aina", "aina", None, 0.6)], 0.0),
-    ("kime", "3_living", 1.4, "aina", [("E7_aina", "aina", "聞き出すんじゃなくて、\n話したくなるまで、となりにいよう", 0.05)], 0.0),
+    ("omoi", "6_aina_up", 0.0, "aup", [("E6_aina", "aina", None, 0.6)], 0.0),
+    ("kime", "6_aina_up", 2.4, "aup", [("E7_aina", "aina", "聞き出すんじゃなくて、\n話したくなるまで、となりにいよう", 0.05)], 0.0),
     ("walk1", "4_yorumichi", 0.0, "walk", [("E8_aina", "aina", "コンビニ行くけど、一緒に行く？", 0.3),
                                            ("E9_sora", "sora", "…うん", 0.3)], 0.0),
     ("walk2", "4_yorumichi", 1.2, "walk_near", [("E10_sora", "sora", "……部活のこと、ずっと言えなくて", 1.1)], 0.0),
@@ -208,7 +208,7 @@ def main():
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     for s in scenes:
         if s["clip"]:
-            if s["name"] in ("omoi", "kime"):
+            if False:
                 src = aina_only(s["clip"], s["cst"], s["dur"], s["face"])
             else:
                 src = frames(s["clip"], s["cst"], s["dur"], s["face"])
