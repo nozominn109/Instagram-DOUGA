@@ -74,8 +74,9 @@ def aina_only(clip, start, dur, face):
     # 止めるコマ：莉奈が大笑いしていない、落ちついた表情のコマを選ぶ
     still = src[min(len(src) - 1, round(max(0.0, STILL_AT.get(clip, start) - start) * FPS))]
     mask = Image.new("L", (1080, 1916), 0)
-    ImageDraw.Draw(mask).ellipse((430, 360, 760, 1250), fill=255)
-    mask = mask.filter(ImageFilter.GaussianBlur(25))
+    # 愛奈の顔と体だけ（右どなりの莉奈・左のパパの手にかからない幅にして、ぼかしも細くする）
+    ImageDraw.Draw(mask).ellipse((470, 380, 712, 1250), fill=255)
+    mask = mask.filter(ImageFilter.GaussianBlur(10))
     cx, cy, z = FACE[face]
     cw, ch = int(1080 / z), int(1916 / z)
     x0 = min(max(int(cx - cw / 2), 0), 1080 - cw)
