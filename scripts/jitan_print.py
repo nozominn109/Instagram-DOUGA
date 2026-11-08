@@ -50,15 +50,17 @@ def voice(name):
 
 
 def quiet_papa(dur, face):
-    """パパの口が動かないように、3.9秒以降を往復再生し、口もとだけ口を閉じた最後のコマで上書きする。"""
+    """パパの口が動かないように、3.9秒以降を往復再生し、パパの体まるごとを口を閉じた最後のコマで止める。"""
     raw = subprocess.run(["ffmpeg", "-v", "error", "-ss", "3.9", "-i", str(CLIPS / "1_print.mp4"), "-vf", f"fps={FPS}",
                           "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], capture_output=True, check=True).stdout
     n = 1080 * 1916 * 3
     src = [Image.frombytes("RGB", (1080, 1916), raw[i:i + n]) for i in range(0, len(raw) - n + 1, n)]
     closed = src[-1]
     mask = Image.new("L", (1080, 1916), 0)
-    ImageDraw.Draw(mask).ellipse((390, 455, 530, 570), fill=255)
-    mask = mask.filter(ImageFilter.GaussianBlur(14))
+    # パパの頭〜肩〜手をまるごと止める（愛奈の髪・蒼の腕にはかからない範囲）
+    ImageDraw.Draw(mask).polygon([(320, 300), (580, 300), (670, 520), (655, 700), (600, 760), (380, 760),
+                                  (390, 640), (250, 600), (225, 470)], fill=255)
+    mask = mask.filter(ImageFilter.GaussianBlur(10))
     seq = src + src[-2:0:-1]
     cx, cy, z = FACE[face]
     cw, ch = int(1080 / z), int(1916 / z)
