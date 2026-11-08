@@ -33,9 +33,7 @@ SCENES = [
     ("chappy", "1_shiin", 3.2, "chappy", [], 0.5),
     ("secret", "2_phone", 0.0, "aina", [], 1.3),
     ("phone", None, 0.0, None, [("Y1_ai", "ai", None, 0.3)], 0.0),
-    ("flash", "gohan_table", 0.4, "g_sora", [], 0.45),
-    ("flash2", "gohan_table", 1.0, "g_rina", [], 0.45),
-    ("hatt", "2_phone", 2.0, "aina", [], 1.1),
+    ("hatt", "2_phone", 2.0, "aina", [], 2.0),
     ("ask", "2_phone", 3.3, "aina", [("Y2_aina", "aina", "ねえ、1日だけ大人と子どもが\n入れかわったら、何する？", 0.05)], 0.0),
     ("talk", "3_talk", 0.0, "table", [("Y3_rina", "rina", "パパの会社行って寝る！", 0.05),
                                        ("Y4_satoru", "satoru", "バレるって！", 0.0),
@@ -118,8 +116,10 @@ def decorate(f, sc, lt, vo):
         text_block(f, [("（金曜日）", 44, (120, 96, 84))], 380, 0.5)
     if name == "hatt":
         text_block(f, [("ハッ！", 90, (150, 110, 200))], 380, lt)
-        if lt > 0.3:
-            bubble(f, "“したいこと”なら、\nみんな言う！", lt - 0.3, 1260)
+        if lt > 0.25:  # 愛奈が金曜の「肉！」「パスタ！」を思い出す（吹き出し）
+            bubble(f, "金曜は「肉！」「パスタ！」って\nみんな言ってたな…", lt - 0.25, 1180)
+        if lt > 1.05:
+            bubble(f, "“したいこと”なら、\nみんな話す！", lt - 1.05, 1430, (236, 92, 108))
     if name == "end":
         f2 = f.filter(ImageFilter.GaussianBlur(10))
         f.alpha_composite(f2)
