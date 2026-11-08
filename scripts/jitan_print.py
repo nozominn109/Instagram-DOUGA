@@ -49,7 +49,29 @@ def voice(name):
     return np.frombuffer(raw, np.float32).astype(float)
 
 
+def quiet_papa(dur, face):
+    """パパの口が動かないように、3.9秒以降を往復再生し、口もとだけ口を閉じた最後のコマで上書きする。"""
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-ss", "3.9", "-i", str(CLIPS / "1_print.mp4"), "-vf", f"fps={FPS}",
+                          "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], capture_output=True, check=True).stdout
+    n = 1080 * 1916 * 3
+    src = [Image.frombytes("RGB", (1080, 1916), raw[i:i + n]) for i in range(0, len(raw) - n + 1, n)]
+    closed = src[-1]
+    mask = Image.new("L", (1080, 1916), 0)
+    ImageDraw.Draw(mask).ellipse((390, 455, 530, 570), fill=255)
+    mask = mask.filter(ImageFilter.GaussianBlur(14))
+    seq = src + src[-2:0:-1]
+    cx, cy, z = FACE[face]
+    cw, ch = int(1080 / z), int(1916 / z)
+    x0 = min(max(int(cx - cw / 2), 0), 1080 - cw)
+    y0 = min(max(int(cy - ch / 2), 0), 1916 - ch)
+    for i in range(round(dur * FPS)):
+        f = Image.composite(closed, seq[i % len(seq)], mask)
+        yield f.crop((x0, y0, x0 + cw, y0 + ch)).resize((W, H), Image.LANCZOS).convert("RGBA")
+
+
 def frames(clip, start, dur, face, blur=False):
+    if clip == "1_print" and face in ("aina", "sora"):
+        return quiet_papa(dur, face)
     import short_yuhan
     short_yuhan.FACE.update(FACE)
     short_yuhan.CLIPS = CLIPS
