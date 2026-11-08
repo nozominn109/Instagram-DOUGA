@@ -37,8 +37,8 @@ SCENES = [
     ("write", "2_write", 0.0, "rina_w", [("H4_rina", "rina", "12＋15＋18で…45！\nそれを3日で分けると…15！", 0.2)], 0.0),
     ("yatta", "3_yatta", 0.3, "two3", [("H5_rina", "rina", "自分で解けた！", 0.05),
                                         ("H6_aina", "aina", "すごいじゃん！", 0.1)], 0.0),
-    ("omoi", "3_yatta", 3.0, "aina3", [], 2.0),
-    ("end", "3_yatta", 4.0, "two3", [], 3.0),
+    ("omoi", "3_yatta", 3.0, "aina3", [], 1.5),
+    ("end", "3_yatta", 4.0, "two3", [], 2.5),
 ]
 
 
@@ -114,8 +114,8 @@ def decorate(f, sc, lt, vo):
     if name == "write":
         question_card(f, lt)
     if name == "omoi":
-        if lt > 0.2:
-            bubble(f, "答えより、“わかった！”の\nほうがうれしいね", lt - 0.2, 1330, (236, 92, 108))
+        if lt > 0.05:
+            bubble(f, "答えより、“わかった！”の\nほうがうれしいね", lt - 0.05, 1330, (236, 92, 108))
     if name == "end":
         f.alpha_composite(f.filter(ImageFilter.GaussianBlur(10)))
         layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
@@ -128,8 +128,8 @@ def decorate(f, sc, lt, vo):
         d.text((W / 2, 1340), "フォローしてね", font=font(44), fill=(255, 255, 255), anchor="mm")
         paste(f, layer, 0, (1 - back_out(lt / 0.4)) * 60, min(1, lt / 0.25))
         sparkles(f, lt, 540, 1190, 460, 8, seed=7)
-        if lt > 0.5:
-            bubble(f, "AIへのお願いの文は\nキャプションに書いたよ！保存してね", lt - 0.5, 800, (74, 170, 150))
+        if lt > 0.3:
+            bubble(f, "AIへのお願いの文は\nキャプションに書いたよ！保存してね", lt - 0.3, 800, (74, 170, 150))
     for v, sp, sub, st in sc["lines"]:
         ln = len(vo[v]) / SR
         if sub and st - 0.03 <= lt < st + max(ln, 0.6) + 0.1:
