@@ -61,6 +61,30 @@ def voice(name):
     return np.frombuffer(raw, np.float32).astype(float)
 
 
+STILL_AT = {"3_living_b": 1.2}  # 動画の何秒目のコマで止めるか
+
+
+def aina_only(clip, start, dur, face):
+    """愛奈だけ動かして、まわりのパパと莉奈は最初のコマで止める（愛奈が1人で話す場面用）。"""
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-ss", str(start), "-i", str(CLIPS / f"{clip}.mp4"), "-vf",
+                          f"fps={FPS}", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
+                         capture_output=True, check=True).stdout
+    n = 1080 * 1916 * 3
+    src = [Image.frombytes("RGB", (1080, 1916), raw[i:i + n]) for i in range(0, len(raw) - n + 1, n)]
+    # 止めるコマ：莉奈が大笑いしていない、落ちついた表情のコマを選ぶ
+    still = src[min(len(src) - 1, round(max(0.0, STILL_AT.get(clip, start) - start) * FPS))]
+    mask = Image.new("L", (1080, 1916), 0)
+    ImageDraw.Draw(mask).ellipse((430, 360, 760, 1250), fill=255)
+    mask = mask.filter(ImageFilter.GaussianBlur(25))
+    cx, cy, z = FACE[face]
+    cw, ch = int(1080 / z), int(1916 / z)
+    x0 = min(max(int(cx - cw / 2), 0), 1080 - cw)
+    y0 = min(max(int(cy - ch / 2), 0), 1916 - ch)
+    for i in range(round(dur * FPS)):
+        f = Image.composite(src[min(i, len(src) - 1)], still, mask)
+        yield f.crop((x0, y0, x0 + cw, y0 + ch)).resize((W, H), Image.LANCZOS).convert("RGBA")
+
+
 def frames(clip, start, dur, face, blur=False):
     cx, cy, z = FACE[face] if face else (540, 958, 1.0)
     cw, ch = int(1080 / z), int(1916 / z)
@@ -183,7 +207,10 @@ def main():
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     for s in scenes:
         if s["clip"]:
-            src = frames(s["clip"], s["cst"], s["dur"], s["face"])
+            if s["name"] in ("omoi", "kime"):
+                src = aina_only(s["clip"], s["cst"], s["dur"], s["face"])
+            else:
+                src = frames(s["clip"], s["cst"], s["dur"], s["face"])
         else:
             src = frames("3_living", 1.0, s["dur"], "aina", blur=True)
         for i, f in enumerate(src):
