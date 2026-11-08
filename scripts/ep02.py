@@ -20,7 +20,7 @@ from short_yuhan import bubble
 KIT = ROOT / "output" / "ep02"
 CLIPS, VOICES = KIT / "clips", KIT / "voices"
 OUT = KIT / "ep02.mp4"
-TEMPO = 1.3
+TEMPO = 1.4
 
 # 顔のアップ: (中心x, 中心y, 拡大率)  ※1080x1916 の座標
 FACE = {"rouka": (700, 820, 1.25), "door": (700, 700, 1.5), "papa_up": (360, 560, 1.4),
