@@ -20,7 +20,8 @@ from short_yuhan import bubble
 KIT = ROOT / "output" / "ep02"
 CLIPS, VOICES = KIT / "clips", KIT / "voices"
 OUT = KIT / "ep02.mp4"
-TEMPO = 1.5
+TEMPO = 1.65
+VT = {"E5_ai": 1.75, "E6_aina": 1.7, "E7_aina": 1.7}  # 声ごとの速さ（AIくん・愛奈の心の声は少し速く）
 
 # 顔のアップ: (中心x, 中心y, 拡大率)  ※1080x1916 の座標
 FACE = {"rouka": (700, 820, 1.25), "door": (700, 700, 1.5), "papa_up": (360, 560, 1.4),
@@ -33,20 +34,20 @@ AIQ = "愛奈さんが13歳のころ、親に話せたのは、どんなとき�
 
 # 場面: (名前, 動画, 動画の開始秒, 顔, [(声, 話す人, 字幕, 場面内の開始秒)], 最低の長さ)
 SCENES = [
-    ("open", "1_rouka", 0.0, "rouka", [], 2.8),
-    ("nani", "2_kikimimi", 0.3, "door", [("E1_sora", "sora", "……なに？", 0.4)], 0.0),
+    ("open", "1_rouka", 0.0, "rouka", [], 2.3),
+    ("nani", "2_kikimimi", 0.3, "door", [("E1_sora", "sora", "……なに？", 0.2)], 0.0),
     ("toire", "2_kikimimi", 2.2, "papa_up", [("E2_satoru", "satoru", "い、いや、トイレ……", 0.05)], 0.0),
-    ("hiso", "3_living", 0.0, "papa_aina", [("E3_satoru", "satoru", "蒼、AIに相談してるっぽいぞ。\n僕たちには何も言わないのに", 0.1)], 0.0),
+    ("hiso", "3_living", 0.0, "papa_aina", [("E3_satoru", "satoru", "蒼、AIに相談してるっぽいぞ。\n僕たちには何も言わないのに", 0.05)], 0.0),
     ("rina", "3_living", 2.6, "rina", [("E4_rina", "rina", "AIのほうが話しやすいんじゃない？\n怒らないし", 0.05)], 0.0),
-    ("phone", None, 0.0, None, [("E5_ai", "ai", None, 1.1)], 0.0),
-    ("omoi", "6_aina_up", 0.0, "aup", [("E6_aina", "aina", None, 0.6)], 0.0),
+    ("phone", None, 0.0, None, [("E5_ai", "ai", "愛奈さんが13歳のころ、\n親に話せたのは、\nどんなときでしたか？", 0.5)], 0.0),
+    ("omoi", "6_aina_up", 0.0, "aup", [("E6_aina", "aina", None, 0.25)], 0.0),
     ("kime", "6_aina_up", 2.4, "aup", [("E7_aina", "aina", "聞き出すんじゃなくて、\n話したくなるまで、となりにいよう", 0.05)], 0.0),
-    ("walk1", "4_yorumichi", 0.0, "walk", [("E8_aina", "aina", "コンビニ行くけど、一緒に行く？", 0.3),
-                                           ("E9_sora", "sora", "…うん", 0.3)], 0.0),
-    ("walk2", "4_yorumichi", 1.2, "walk_near", [("E10_sora", "sora", "……部活のこと、ずっと言えなくて", 1.1)], 0.0),
-    ("walk3", "4_yorumichi", 0.4, "walk_sora", [("E11_sora", "sora", "……心配かけたくなかったんだよ", 0.4)], 0.0),
-    ("walk4", "4_yorumichi", 2.6, "walk", [("E12_aina", "aina", "そっか。話してくれて、ありがとう", 0.3)], 0.0),
-    ("end", "5_okaeri", 0.0, "okaeri", [], 5.2),
+    ("walk1", "4_yorumichi", 0.0, "walk", [("E8_aina", "aina", "コンビニ行くけど、一緒に行く？", 0.15),
+                                           ("E9_sora", "sora", "…うん", 0.2)], 0.0),
+    ("walk2", "4_yorumichi", 1.2, "walk_near", [("E10_sora", "sora", "……部活のこと、ずっと言えなくて", 0.35)], 0.0),
+    ("walk3", "4_yorumichi", 0.4, "walk_sora", [("E11_sora", "sora", "……心配かけたくなかったんだよ", 0.25)], 0.0),
+    ("walk4", "4_yorumichi", 2.6, "walk", [("E12_aina", "aina", "そっか。話してくれて、ありがとう", 0.2)], 0.0),
+    ("end", "5_okaeri", 0.0, "okaeri", [], 4.6),
 ]
 
 
@@ -55,7 +56,7 @@ def voice(name):
     if not path.exists():  # まだ届いていない声は、無音で長さだけとっておく
         return np.zeros(int(SR * 2.0))
     af = (f"silenceremove=start_periods=1:start_threshold=-40dB:stop_periods=-1:stop_duration=0.3:"
-          f"stop_threshold=-40dB:stop_silence=0.2,atempo={TEMPO}")
+          f"stop_threshold=-40dB:stop_silence=0.2,atempo={VT.get(name, TEMPO)}")
     raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-af", af, "-ac", "1", "-ar",
                           str(SR), "-f", "f32le", "-"], capture_output=True, check=True).stdout
     return np.frombuffer(raw, np.float32).astype(float)
@@ -117,11 +118,11 @@ def decorate(f, sc, lt, vo):
     name = sc["name"]
     if name == "open":
         text_block(f, [("AIには話すのに、", 66, (90, 110, 170))], 1150, lt)
-        text_block(f, [("親には話さない…？", 90, (236, 92, 108))], 1250, lt, 0.25)
+        text_block(f, [("親には話さない…？", 90, (236, 92, 108))], 1250, lt, 0.0)
     if name == "phone":
         st = sc["lines"][0][3]
         ln = len(vo["E5_ai"]) / SR
-        msgs = [("me", ASK, int(len(ASK) * min(1, lt / 0.8)), (), 0)]
+        msgs = [("me", ASK, int(len(ASK) * min(1, lt / 0.4)), (), 0)]
         if lt >= st - 0.1:
             msgs.append(("ai", AIQ, int(len(AIQ) * min(1, (lt - st) / max(ln * 0.8, 0.1))), (), 0))
         layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
@@ -137,9 +138,9 @@ def decorate(f, sc, lt, vo):
         if lt > sw:
             bubble(f, "並んで歩いてるときは、\n話せたな", lt - sw, 1290, (150, 110, 200))
     if name == "end":
-        f.alpha_composite(f.filter(ImageFilter.GaussianBlur(10)) if lt > 2.0 else f)
-        if lt > 2.0:
-            k = lt - 2.0
+        f.alpha_composite(f.filter(ImageFilter.GaussianBlur(10)) if lt > 1.6 else f)
+        if lt > 1.6:
+            k = lt - 1.6
             layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
             d = ImageDraw.Draw(layer)
             d.rounded_rectangle((60, 1000, W - 60, 1400), 48, fill=(255, 252, 245, 238), outline=(240, 170, 150),
@@ -172,7 +173,7 @@ def main():
             lt += st
             timed.append((v, sp, sub, lt))
             lt += len(vo[v]) / SR
-        dur = max(dur, lt + 0.35)
+        dur = max(dur, lt + 0.2)
         scenes.append(dict(name=name, clip=clip, cst=cst, face=face, lines=timed, dur=dur, t0=t))
         t += dur
     total = t
