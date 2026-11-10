@@ -89,6 +89,20 @@ def sepia(f):
     return Image.composite(sp, soft, mask.filter(ImageFilter.GaussianBlur(120)))
 
 
+def caption_note(f, lt, t0):
+    """お願いの文が出る場面に重ねる小さな案内。"""
+    if lt < t0:
+        return
+    fnt = font(38, FONT_B)
+    txt = "全文はキャプションに。保存してあとで試してね"
+    w = int(fnt.getlength(txt)) + 70
+    im = Image.new("RGBA", (w, 84), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle((0, 0, w - 1, 83), 42, fill=(255, 250, 240, 240), outline=(74, 170, 150), width=4)
+    d.text((w / 2, 42), txt, font=fnt, fill=INK, anchor="mm")
+    paste(f, im, W / 2 - w / 2, 1420, ease((lt - t0) / 0.2))
+
+
 def decorate(f, sc, lt, vo):
     name = sc["name"]
     if name == "sora":
@@ -96,7 +110,7 @@ def decorate(f, sc, lt, vo):
         text_block(f, [("（このあいだ、蒼が…）", 50, (120, 96, 84))], 380, lt)
     if name == "open":
         text_block(f, [("部活の保護者LINE、", 62, (90, 110, 170))], 1180, lt)
-        text_block(f, [("お礼の一文に30分…", 84, (236, 92, 108))], 1270, lt, 0.2)
+        text_block(f, [("お礼の一文に30分…", 84, (236, 92, 108))], 1270, lt, 0.0)
     if name in ("draft", "aiq", "send"):
         msgs = [("me", ASK, 99, (), 0)]
         if name == "draft":
@@ -115,8 +129,16 @@ def decorate(f, sc, lt, vo):
         note = {"draft": "下書きはAIに", "aiq": "AIからの質問", "send": "自分の言葉をひとこと足す"}[name]
         phone_screen(layer, lt, msgs, note, (lt + 0.05) / 0.3 if name == "draft" else 1.0)
         f.alpha_composite(layer, (0, 170))
+        if name == "draft":  # 大事な1行を大きな字幕でも見せる＋キャプション誘導（最後まで見ない人向け）
+            if 0.2 <= lt < 2.8:
+                im = sub_img("aina", "「送迎のお礼の文、3行で」")
+                paste(f, im, 0, 1330 - im.height / 2, ease((lt - 0.2) / 0.15))
+            caption_note(f, lt, 0.5)
         if name == "aiq" and lt > 1.3:
             text_block(f, [("ハッ！", 90, (150, 110, 200))], 1630, lt, 1.3)
+        if name == "send" and 0.3 <= lt < 2.6:
+            im = sub_img("aina", "蒼が「車の中、楽しかった」\nって言ってました")
+            paste(f, im, 0, 1330 - im.height / 2, ease((lt - 0.3) / 0.15))
         if name == "send" and lt > 2.3:
             text_block(f, [("送信！", 80, (74, 170, 150))], 1630, lt, 2.3)
     if name == "end":
