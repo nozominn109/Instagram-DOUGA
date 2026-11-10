@@ -33,7 +33,7 @@ Q = ("3日間で読んだページは", "12・15・18ページ。", "1日平均�
 SCENES = [
     ("open", "1_drill", 0.0, "two", [("H1_rina", "rina", "AIに答え聞いちゃお", 0.4)], 0.0),
     ("wait", "1_drill", 2.4, "aina", [("H2_aina", "aina", "待って。聞き方を変えてみよう", 0.05)], 0.0),
-    ("phone", None, 0.0, None, [("H3_ai", "ai", None, 0.8)], 0.0),
+    ("phone", None, 0.0, None, [("H3_ai", "ai", None, 0.8)], 4.8),
     ("write", "2_write", 0.0, "rina_w", [("H4_rina", "rina", "12＋15＋18で…45！\nそれを3日で分けると…15！", 0.2)], 0.0),
     ("yatta", "3_yatta", 0.3, "two3", [("H5_rina", "rina", "自分で解けた！", 0.05),
                                         ("H6_aina", "aina", "すごいじゃん！", 0.1)], 0.0),
@@ -100,7 +100,7 @@ def decorate(f, sc, lt, vo):
     name = sc["name"]
     if name == "open":
         text_block(f, [("宿題、AIにやらせたら", 62, (90, 110, 170))], 400, lt)
-        text_block(f, [("ズル？", 100, (236, 92, 108))], 490, lt, 0.15)
+        text_block(f, [("ズル？", 100, (236, 92, 108))], 490, lt, 0.0)
     if name == "phone":
         st = sc["lines"][0][3]
         ln = len(vo["H3_ai"]) / SR
@@ -111,6 +111,17 @@ def decorate(f, sc, lt, vo):
         layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         phone_screen(layer, lt, msgs, "聞き方を変えると…", (lt + 0.05) / 0.3)
         f.alpha_composite(layer, (0, 170))
+        if 0.25 <= lt:  # 大事な1行を大きな字幕でも見せる＋キャプション誘導
+            im = sub_img("aina", "「答えは言わないで。\nヒントを1つずつ出して」")
+            paste(f, im, 0, 1320 - im.height / 2, ease((lt - 0.25) / 0.15))
+            fnt = font(38, FONT_B)
+            txt = "全文はキャプションに。保存してあとで試してね"
+            w = int(fnt.getlength(txt)) + 70
+            note = Image.new("RGBA", (w, 84), (0, 0, 0, 0))
+            d = ImageDraw.Draw(note)
+            d.rounded_rectangle((0, 0, w - 1, 83), 42, fill=(255, 250, 240, 240), outline=(74, 170, 150), width=4)
+            d.text((w / 2, 42), txt, font=fnt, fill=INK, anchor="mm")
+            paste(f, note, W / 2 - w / 2, 1440, ease((lt - 0.6) / 0.2))
     if name == "write":
         question_card(f, lt)
     if name == "omoi":
