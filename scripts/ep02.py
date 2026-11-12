@@ -47,7 +47,7 @@ SCENES = [
     ("walk2", "4_yorumichi", 1.2, "walk_near", [("E10_sora", "sora", "……部活のこと、ずっと言えなくて", 0.35)], 0.0),
     ("walk3", "4_yorumichi", 0.4, "walk_sora", [("E11_sora", "sora", "……心配かけたくなかったんだよ", 0.25)], 0.0),
     ("walk4", "4_yorumichi", 2.6, "walk", [("E12_aina", "aina", "そっか。話してくれて、ありがとう", 0.2)], 0.0),
-    ("end", "5_okaeri", 0.0, "okaeri", [], 4.6),
+    ("end", "5_okaeri", 0.0, "okaeri", [], 3.9),
 ]
 
 
@@ -128,6 +128,15 @@ def decorate(f, sc, lt, vo):
         layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         phone_screen(layer, lt, msgs, "こっそりAIに相談", (lt + 0.05) / 0.3)
         f.alpha_composite(layer, (0, 170))
+        if lt >= 0.5:  # 保存の案内（プロンプトが出る場面に小さく重ねる）
+            fnt = font(36, FONT_B)
+            txt = "全文はキャプションに。保存してあとで試してね"
+            w = int(fnt.getlength(txt)) + 66
+            note = Image.new("RGBA", (w, 80), (0, 0, 0, 0))
+            d = ImageDraw.Draw(note)
+            d.rounded_rectangle((0, 0, w - 1, 79), 40, fill=(255, 250, 240, 240), outline=(74, 170, 150), width=4)
+            d.text((w / 2, 40), txt, font=fnt, fill=INK, anchor="mm")
+            paste(f, note, W / 2 - w / 2, 1440, ease((lt - 0.5) / 0.2))
         if lt > st + ln * 0.85:
             text_block(f, [("ハッ…", 84, (150, 110, 200))], 1630, lt, st + ln * 0.85)
     if name == "omoi":  # 心の声（吹き出し）
@@ -138,9 +147,9 @@ def decorate(f, sc, lt, vo):
         if lt > sw:
             bubble(f, "並んで歩いてるときは、\n話せたな", lt - sw, 1290, (150, 110, 200))
     if name == "end":
-        f.alpha_composite(f.filter(ImageFilter.GaussianBlur(10)) if lt > 1.6 else f)
-        if lt > 1.6:
-            k = lt - 1.6
+        f.alpha_composite(f.filter(ImageFilter.GaussianBlur(10)) if lt > 1.4 else f)
+        if lt > 1.4:
+            k = lt - 1.4
             layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
             d = ImageDraw.Draw(layer)
             d.rounded_rectangle((60, 1000, W - 60, 1400), 48, fill=(255, 252, 245, 238), outline=(240, 170, 150),
