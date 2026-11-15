@@ -80,9 +80,9 @@ def clip_frames(clip, start, speed, dur, blur=False):
     p.wait()
 
 
-def text_block(f, lines, y, lt, t0=0.0, cx=W / 2):
-    """白ふちの大きな文字（何行か）をポンと出す。"""
-    k = back_out((lt - t0) / 0.3)
+def text_block(f, lines, y, lt, t0=0.0, cx=W / 2, instant=False):
+    """白ふちの大きな文字（何行か）をポンと出す。instant=True なら0秒目からすぐ全部見せる（タイトル用）。"""
+    k = 1.0 if instant else back_out((lt - t0) / 0.3)
     if k <= 0:
         return
     for i, (txt, size, col) in enumerate(lines):
@@ -91,7 +91,7 @@ def text_block(f, lines, y, lt, t0=0.0, cx=W / 2):
         s = max(0.05, k)
         im2 = im.resize((max(1, int(W * s)), max(1, int(im.height * s))), Image.BILINEAR) if s < 0.999 else im
         paste(f, im2, cx - im2.width / 2, y + i * (size + 24) + (im.height - im2.height) / 2,
-              min(1, (lt - t0) / 0.2))
+              1.0 if instant else min(1, (lt - t0) / 0.2))
 
 
 def decorate(f, scene, lt, dur, vstart):

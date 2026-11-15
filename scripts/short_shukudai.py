@@ -99,8 +99,8 @@ def question_card(f, lt, y=400):
 def decorate(f, sc, lt, vo):
     name = sc["name"]
     if name == "open":
-        text_block(f, [("宿題、AIにやらせたら", 62, (90, 110, 170))], 400, lt)
-        text_block(f, [("ズル？", 100, (236, 92, 108))], 490, lt, 0.0)
+        text_block(f, [("宿題、AIにやらせたら", 62, (90, 110, 170))], 400, lt, instant=True)
+        text_block(f, [("ズル？", 100, (236, 92, 108))], 490, lt, 0.0, instant=True)
     if name == "phone":
         st = sc["lines"][0][3]
         ln = len(vo["H3_ai"]) / SR

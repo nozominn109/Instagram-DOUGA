@@ -111,10 +111,10 @@ def caption_note(f, lt, t0, text="全文はキャプションに。保存して�
 def decorate(f, sc, lt, vo):
     name = sc["name"]
     if name == "open":
-        text_block(f, [("夜9時", 52, (120, 96, 84))], 370, lt)
-        text_block(f, [("明日の朝も", 62, (90, 110, 170))], 440, lt)
-        text_block(f, [("「体操服どこ！？」", 88, (236, 92, 108))], 520, lt)
-        text_block(f, [("になる…？", 62, (90, 110, 170))], 640, lt)
+        text_block(f, [("夜9時", 52, (120, 96, 84))], 370, lt, instant=True)
+        text_block(f, [("明日の朝も", 62, (90, 110, 170))], 440, lt, instant=True)
+        text_block(f, [("「体操服どこ！？」", 88, (236, 92, 108))], 520, lt, instant=True)
+        text_block(f, [("になる…？", 62, (90, 110, 170))], 640, lt, instant=True)
     if name == "ask":
         if lt < 1.2:
             msgs = [("me", ASK, int(len(ASK) * min(1, lt / 0.6)), (), 0)]

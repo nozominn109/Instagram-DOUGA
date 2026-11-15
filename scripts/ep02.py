@@ -117,8 +117,8 @@ def frames(clip, start, dur, face, blur=False):
 def decorate(f, sc, lt, vo):
     name = sc["name"]
     if name == "open":
-        text_block(f, [("AIには話すのに、", 66, (90, 110, 170))], 1150, lt)
-        text_block(f, [("親には話さない…？", 90, (236, 92, 108))], 1250, lt, 0.0)
+        text_block(f, [("AIには話すのに、", 66, (90, 110, 170))], 1150, lt, instant=True)
+        text_block(f, [("親には話さない…？", 90, (236, 92, 108))], 1250, lt, 0.0, instant=True)
     if name == "phone":
         st = sc["lines"][0][3]
         ln = len(vo["E5_ai"]) / SR

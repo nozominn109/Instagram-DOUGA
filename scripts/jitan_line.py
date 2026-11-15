@@ -109,8 +109,8 @@ def decorate(f, sc, lt, vo):
         f = sepia(f)
         text_block(f, [("（このあいだ、蒼が…）", 50, (120, 96, 84))], 380, lt)
     if name == "open":
-        text_block(f, [("部活の保護者LINE、", 62, (90, 110, 170))], 1180, lt)
-        text_block(f, [("お礼の一文に30分…", 84, (236, 92, 108))], 1270, lt, 0.0)
+        text_block(f, [("部活の保護者LINE、", 62, (90, 110, 170))], 1180, lt, instant=True)
+        text_block(f, [("お礼の一文に30分…", 84, (236, 92, 108))], 1270, lt, 0.0, instant=True)
     if name in ("draft", "aiq", "send"):
         msgs = [("me", ASK, 99, (), 0)]
         if name == "draft":
