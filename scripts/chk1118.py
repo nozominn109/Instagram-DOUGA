@@ -18,7 +18,7 @@ from short_yuhan import bubble
 KIT = ROOT / "output" / "chk1118"
 CLIPS, VOICES = KIT / "clips", KIT / "voices"
 OUT = KIT / "chk1118.mp4"
-VT = {"C1_satoru": 1.15, "C2_aina": 1.3}
+VT = {"C1_satoru": 1.25, "C2_aina": 1.3}
 
 FACE = {"sigh": (600, 800, 1.5), "wide": (540, 900, 1.12), "two": (560, 820, 1.35)}
 
