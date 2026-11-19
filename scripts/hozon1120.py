@@ -31,12 +31,13 @@ SCENES = [
     ("t1", "kit", 0.0, 5.0, 5.5),
     ("t2", "phone_bg", 1.0, 3.0, 7.0),
     ("t3", "prep", 1.0, 3.5, 5.8),
-    ("sum", "prep", 3.0, 1.0, 1.7),
+    ("sum", "prep", 3.0, 1.0, 2.2),
     ("end", "end", 0.0, 5.0, 6.2),
 ]
 
-ZOPEN = ("Z1_aina_open", 1.85)
+ZOPEN = ("Z1_aina_open", 1.7)
 ZEND = ("Z2_aina_end", 1.3)
+TYPE_OFFSET = {"t1": 0.65}  # 型①の声は、タイトルの声のあと0.5秒ほど間をあけて始める
 ZTYPE = {"t1": ("Z3_type1", 1.3), "t2": ("Z4_type2", 1.3), "t3": ("Z5_type3", 1.3)}  # 各型の頭で愛奈が言う声
 CARD_AT = 5.0
 
@@ -219,6 +220,8 @@ def main():
     CARD_AT = END_VOICE_AT + len(vo["end"]) / SR + 0.5  # 声が終わって、愛奈の笑顔で一拍（約0.9秒）置いてからカード
     t, scenes = 0.0, []
     for name, src, st, use, dur in SCENES:
+        if name == "t1":
+            dur = max(dur, TYPE_OFFSET["t1"] + len(vo["t1"]) / SR + 0.25)  # タイトルのあと、約0.5秒の間をあけてから型①の声
         if name == "open":
             dur = 0.1 + len(vo["open"]) / SR + 0.15  # タイトルは、声が終わるまでの約2.4秒
         if name == "end":
@@ -240,8 +243,9 @@ def main():
     put(vo["end"], scenes[-1]["t0"] + END_VOICE_AT)
     for sc in scenes:
         if sc["name"] in ZTYPE:
-            put(vo[sc["name"]], sc["t0"] + 0.15)
-            assert len(vo[sc["name"]]) / SR + 0.15 <= sc["dur"], sc["name"]
+            off = TYPE_OFFSET.get(sc["name"], 0.15)
+            put(vo[sc["name"]], sc["t0"] + off)
+            assert len(vo[sc["name"]]) / SR + off <= sc["dur"], sc["name"]
     for s in scenes:
         if s["name"] == "sum":
             p = message_pop()
