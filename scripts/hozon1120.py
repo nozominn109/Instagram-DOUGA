@@ -13,23 +13,25 @@ import scipy.io.wavfile as wavfile
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
 
 from assemble_ai import AMBIENCE, FPS, H, ROOT, SR, W, load_loop, music_bed, sub_img, message_pop
-from render import FONT_B, INK, back_out, ease, font, outlined, paste, sparkles
+from render import FONT_B, INK, back_out, ease, font, outlined, paste, phone_screen, sparkles
 from short_ai_ok import small_logo, text_block
+from chk1118 import group_screen
 
 KIT = ROOT / "output" / "hozon1120"
 OUT = KIT / "hozon1120.mp4"
 V = KIT / "voices"
 CLIP = {"open": KIT / "clips" / "1_aina_open.mp4", "end": KIT / "clips" / "2_aina_end.mp4",
-        "mon": ROOT / "output" / "un1116" / "un1116.mp4", "wed": ROOT / "output" / "chk1118" / "chk1118.mp4",
-        "thu": ROOT / "output" / "yomi1119" / "yomi1119.mp4"}
+        "kit": ROOT / "output" / "yomi1119" / "clips" / "2_read.mp4",
+        "phone_bg": ROOT / "output" / "un1116" / "clips" / "2_phone.mp4",
+        "prep": ROOT / "output" / "chk1118" / "clips" / "2_prep.mp4"}
 
 # 場面: (名前, 素材, 素材の開始秒, 使う秒数, 出す長さ)  ※使う秒数より出す長さが長いときは、ゆっくり再生にする
 SCENES = [
     ("open", "open", 0.0, 3.6, 3.6),
-    ("t1", "thu", 7.0, 5.0, 6.8),
-    ("t2", "mon", 6.5, 6.0, 7.0),
-    ("t3", "wed", 3.0, 5.5, 5.8),
-    ("sum", "wed", 8.6, 1.0, 1.7),
+    ("t1", "kit", 0.0, 5.0, 6.8),
+    ("t2", "phone_bg", 1.0, 3.0, 7.0),
+    ("t3", "prep", 1.0, 3.5, 5.8),
+    ("sum", "prep", 3.0, 1.0, 1.7),
     ("end", "end", 0.0, 5.0, 6.2),
 ]
 
@@ -45,7 +47,7 @@ def voice(name, tempo):
     return np.frombuffer(raw, np.float32).astype(float)
 
 
-def frames(src, start, use, dur):
+def frames(src, start, use, dur, blur=False):
     k = dur / use  # 1より大きいとゆっくり再生
     vf = f"setpts=PTS*{k:.4f},fps={FPS},scale={W}:{H}:flags=lanczos"
     p = subprocess.Popen(["ffmpeg", "-v", "error", "-ss", str(start), "-t", str(use), "-i", str(CLIP[src]), "-vf", vf,
@@ -55,9 +57,41 @@ def frames(src, start, use, dur):
         buf = p.stdout.read(n)
         if len(buf) == n:
             last = Image.frombytes("RGB", (W, H), buf)
-        yield last.copy().convert("RGBA")
+        f = last.copy()
+        if blur:
+            f = ImageEnhance.Brightness(f.filter(ImageFilter.GaussianBlur(14))).enhance(0.85)
+        yield f.convert("RGBA")
     p.stdout.close()
     p.wait()
+
+
+
+def banner_top(f, no, title, color=(236, 92, 108)):
+    """スマホ画面の場面用：画面の上（スマホにかからない高さ）に、小さく1行。切りかえで残らないよう、動きなしで出す。"""
+    h = 128
+    im = Image.new("RGBA", (W - 160, h + 8), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle((0, 5, W - 161, h + 5), 36, fill=(70, 50, 40, 60))
+    d.rounded_rectangle((0, 0, W - 161, h), 36, fill=(255, 252, 245, 245), outline=color, width=5)
+    d.rounded_rectangle((20, 20, 130, h - 20), 26, fill=color)
+    d.text((75, h / 2), f"型{no}", font=font(40, FONT_B), fill=(255, 255, 255), anchor="mm")
+    d.text((160, h / 2), title, font=font(44, FONT_B), fill=INK, anchor="lm")
+    paste(f, im, 80, 318, 1.0)
+
+
+def banner_left(f, no, lines, sub, color=(236, 92, 108)):
+    """ママの場面用：ママの頭にかからない、左上に小さく。"""
+    w, h = 470, 300
+    im = Image.new("RGBA", (w + 8, h + 8), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle((0, 5, w, h + 5), 34, fill=(70, 50, 40, 60))
+    d.rounded_rectangle((0, 0, w, h), 34, fill=(255, 252, 245, 245), outline=color, width=5)
+    d.rounded_rectangle((20, 20, 120, 78), 24, fill=color)
+    d.text((70, 49), f"型{no}", font=font(36, FONT_B), fill=(255, 255, 255), anchor="mm")
+    for i, ln in enumerate(lines):
+        d.text((24, 120 + i * 60), ln, font=font(44, FONT_B), fill=INK, anchor="lm")
+    d.text((24, 120 + len(lines) * 60 + 16), sub, font=font(32), fill=(110, 90, 80), anchor="lm")
+    paste(f, im, 24, 330, 1.0)
 
 
 def banner(f, lt, no, title, sub=None, color=(236, 92, 108)):
@@ -80,6 +114,10 @@ def banner(f, lt, no, title, sub=None, color=(236, 92, 108)):
     paste(f, im, W / 2 - im.width / 2, 370, min(1, lt / 0.15))
 
 
+ASK2 = "どうすれば話してくれる？"
+AIQ2 = "今日、息子さんが笑った瞬間、ありましたか？"
+
+
 def note(f, lt, t0, text):
     if lt < t0:
         return
@@ -89,7 +127,7 @@ def note(f, lt, t0, text):
     d = ImageDraw.Draw(im)
     d.rounded_rectangle((0, 0, w - 1, 87), 44, fill=(255, 250, 240, 245), outline=(74, 170, 150), width=4)
     d.text((w / 2, 44), text, font=fnt, fill=INK, anchor="mm")
-    paste(f, im, W / 2 - w / 2, 1400, ease((lt - t0) / 0.2))
+    paste(f, im, W / 2 - w / 2, 1330, ease((lt - t0) / 0.2))
 
 
 def summary(f, lt):
@@ -118,15 +156,26 @@ def summary(f, lt):
 
 def decorate(f, name, lt, dur, vo):
     if name == "open":
-        text_block(f, [("保存版", 70, (236, 92, 108))], 1090, lt, instant=True)
-        text_block(f, [("親がAIに頼むときの型、3つ", 54, (90, 110, 170))], 1190, lt, instant=True)
+        text_block(f, [("保存版", 70, (236, 92, 108))], 1225, lt, instant=True)
+        text_block(f, [("親がAIに頼むときの型、3つ", 54, (90, 110, 170))], 1325, lt, instant=True)
     if name == "t1":
-        banner(f, lt, "①", "「〇〇の親です」で始める", "例：「小学5年生の親です。」")
+        banner_left(f, "①", ["「〇〇の親です」", "で始める"], "例：小学5年生の親です。")
     if name == "t2":
-        banner(f, lt, "②", "答えじゃなく、質問してもらう", "「答えは言わずに、質問して」")
-        note(f, lt, 3.2, "保存して、明日使ってね")
+        layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        msgs = [("me", ASK2, int(len(ASK2) * min(1, lt / 0.9)), (), 0)]
+        if lt > 1.0:
+            msgs.append(("ai", AIQ2, int(len(AIQ2) * min(1, (lt - 1.0) / 1.2)), (), 0))
+        phone_screen(layer, lt, msgs, "", 1.0)
+        f.alpha_composite(layer, (0, 170))
+        banner_top(f, "②", "答えじゃなく、質問してもらう")
+        if 2.0 <= lt < 5.2:  # 大きな字幕（長めに）。保存の表示は、字幕が消えてから出す（重ならない）
+            im = sub_img("ai", "今日、息子さんが\n笑った瞬間、\nありましたか？")
+            paste(f, im, 0, 1330 - im.height / 2, ease((lt - 2.0) / 0.15))
+        if lt >= 5.3:
+            note(f, lt, 5.3, "保存して、明日使ってね")
     if name == "t3":
-        banner(f, lt, "③", "形を決める", "チェックリスト・3行で・1つだけ")
+        group_screen(f, lt)
+        banner_top(f, "③", "形を決める（リスト・3行・1つだけ）")
     if name == "sum":
         summary(f, lt)
     if name == "end":
@@ -189,7 +238,7 @@ def main():
            "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", str(OUT)]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     for s in scenes:
-        for i, f in enumerate(frames(s["src"], s["st"], s["use"], s["dur"])):
+        for i, f in enumerate(frames(s["src"], s["st"], s["use"], s["dur"], blur=(s["name"] in ("t2", "t3", "sum")))):
             proc.stdin.write(decorate(f, s["name"], i / FPS, s["dur"], vo).convert("RGB").tobytes())
     proc.stdin.close()
     proc.wait()
