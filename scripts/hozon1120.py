@@ -28,15 +28,15 @@ CLIP = {"open": KIT / "clips" / "1_aina_open.mp4", "end": KIT / "clips" / "2_ain
 # 場面: (名前, 素材, 素材の開始秒, 使う秒数, 出す長さ)  ※使う秒数より出す長さが長いときは、ゆっくり再生にする
 SCENES = [
     ("open", "open", 0.0, 3.6, 3.6),
-    ("t1", "kit", 0.0, 5.0, 6.8),
+    ("t1", "kit", 0.0, 5.0, 5.5),
     ("t2", "phone_bg", 1.0, 3.0, 7.0),
     ("t3", "prep", 1.0, 3.5, 5.8),
     ("sum", "prep", 3.0, 1.0, 1.7),
     ("end", "end", 0.0, 5.0, 6.2),
 ]
 
-ZOPEN = ("Z1_aina_open", 1.3)
-ZEND = ("Z2_aina_end", 1.0)
+ZOPEN = ("Z1_aina_open", 1.85)
+ZEND = ("Z2_aina_end", 1.3)
 CARD_AT = 5.0
 
 
@@ -186,7 +186,7 @@ def decorate(f, name, lt, dur, vo):
     if name == "sum":
         summary(f, lt)
     if name == "end":
-        k = ease((lt - 0.4) / 0.25)
+        k = ease((lt - 0.15) / 0.2)
         if lt < CARD_AT:
             im = sub_img("aina", "AIと考えるって、\nひとりで考えるより、\nちょっとだけ心強い。")
             paste(f, im, 0, 1290 - im.height / 2, k)
@@ -212,10 +212,12 @@ def decorate(f, name, lt, dur, vo):
 def main():
     vo = {"open": voice(*ZOPEN), "end": voice(*ZEND)}
     global CARD_AT
-    END_VOICE_AT = 0.5
-    CARD_AT = END_VOICE_AT + len(vo["end"]) / SR + 0.9  # 声が終わって、愛奈の笑顔で一拍（約0.9秒）置いてからカード
+    END_VOICE_AT = 0.15
+    CARD_AT = END_VOICE_AT + len(vo["end"]) / SR + 0.5  # 声が終わって、愛奈の笑顔で一拍（約0.9秒）置いてからカード
     t, scenes = 0.0, []
     for name, src, st, use, dur in SCENES:
+        if name == "open":
+            dur = 0.1 + len(vo["open"]) / SR + 0.15  # タイトルは、声が終わるまでの約2.4秒
         if name == "end":
             dur = CARD_AT + 2.4
         scenes.append(dict(name=name, src=src, st=st, use=use, dur=dur, t0=t))
@@ -231,8 +233,8 @@ def main():
         voices[j:j + len(x)] += x[: len(mix) - j]
         duck[j:j + len(x)] = 0.4
 
-    put(vo["open"], scenes[0]["t0"] + 0.2)
-    put(vo["end"], scenes[-1]["t0"] + 0.5)
+    put(vo["open"], scenes[0]["t0"] + 0.1)
+    put(vo["end"], scenes[-1]["t0"] + END_VOICE_AT)
     for s in scenes:
         if s["name"] == "sum":
             p = message_pop()
