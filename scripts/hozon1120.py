@@ -37,6 +37,7 @@ SCENES = [
 
 ZOPEN = ("Z1_aina_open", 1.3)
 ZEND = ("Z2_aina_end", 1.0)
+CARD_AT = 5.0
 
 
 def voice(name, tempo):
@@ -52,12 +53,18 @@ def frames(src, start, use, dur, blur=False):
     vf = f"setpts=PTS*{k:.4f},fps={FPS},scale={W}:{H}:flags=lanczos"
     p = subprocess.Popen(["ffmpeg", "-v", "error", "-ss", str(start), "-t", str(use), "-i", str(CLIP[src]), "-vf", vf,
                           "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE)
-    n, last = W * H * 3, None
+    n, last, held = W * H * 3, None, 0
     for _ in range(round(dur * FPS)):
         buf = p.stdout.read(n)
         if len(buf) == n:
             last = Image.frombytes("RGB", (W, H), buf)
-        f = last.copy()
+            held = 0
+            f = last.copy()
+        else:  # 動画が終わったあとは、止まって見えないよう、ごくゆっくり寄せる
+            held += 1
+            z = 1 + held * 0.0012
+            f = last.resize((int(W * z), int(H * z)), Image.BILINEAR)
+            f = f.crop(((f.width - W) // 2, (f.height - H) // 2, (f.width - W) // 2 + W, (f.height - H) // 2 + H))
         if blur:
             f = ImageEnhance.Brightness(f.filter(ImageFilter.GaussianBlur(14))).enhance(0.85)
         yield f.convert("RGBA")
@@ -180,11 +187,11 @@ def decorate(f, name, lt, dur, vo):
         summary(f, lt)
     if name == "end":
         k = ease((lt - 0.4) / 0.25)
-        if lt < 4.2:
+        if lt < CARD_AT:
             im = sub_img("aina", "AIと考えるって、\nひとりで考えるより、\nちょっとだけ心強い。")
             paste(f, im, 0, 1290 - im.height / 2, k)
         else:
-            e = lt - 4.2
+            e = lt - CARD_AT
             f.alpha_composite(f.filter(ImageFilter.GaussianBlur(10)))
             layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
             d = ImageDraw.Draw(layer)
@@ -197,15 +204,20 @@ def decorate(f, name, lt, dur, vo):
             paste(f, layer, 0, (1 - back_out(e / 0.4)) * 60, min(1, e / 0.25))
             sparkles(f, e, 540, 1190, 460, 8, seed=7)
     if name not in ("sum", "t1", "t2", "t3") or True:
-        if name in ("open", "end") and not (name == "end" and lt >= 4.2):
+        if name in ("open", "end") and not (name == "end" and lt >= CARD_AT):
             paste(f, small_logo(), 30, 300)
     return f
 
 
 def main():
     vo = {"open": voice(*ZOPEN), "end": voice(*ZEND)}
+    global CARD_AT
+    END_VOICE_AT = 0.5
+    CARD_AT = END_VOICE_AT + len(vo["end"]) / SR + 0.9  # 声が終わって、愛奈の笑顔で一拍（約0.9秒）置いてからカード
     t, scenes = 0.0, []
     for name, src, st, use, dur in SCENES:
+        if name == "end":
+            dur = CARD_AT + 2.4
         scenes.append(dict(name=name, src=src, st=st, use=use, dur=dur, t0=t))
         t += dur
     total = t
