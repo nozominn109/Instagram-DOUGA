@@ -29,7 +29,7 @@ CLIP = {"open": KIT / "clips" / "1_aina_open.mp4", "end": KIT / "clips" / "2_ain
 SCENES = [
     ("open", "open", 0.0, 3.6, 3.6),
     ("t1", "kit", 0.0, 5.0, 5.8),
-    ("t2", "phone_bg", 1.0, 3.0, 7.0),
+    ("t2", "phone_bg", 1.0, 3.0, 5.5),
     ("t3", "prep", 1.0, 3.5, 5.8),
     ("sum", "prep", 3.0, 1.0, 2.2),
     ("end", "end", 0.0, 5.0, 6.2),
@@ -172,16 +172,16 @@ def decorate(f, name, lt, dur, vo):
     if name == "t2":
         layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         msgs = [("me", ASK2, int(len(ASK2) * min(1, lt / 0.9)), (), 0)]
-        if lt > 1.0:
-            msgs.append(("ai", AIQ2, int(len(AIQ2) * min(1, (lt - 1.0) / 1.2)), (), 0))
+        if lt > 0.9:
+            msgs.append(("ai", AIQ2, int(len(AIQ2) * min(1, (lt - 0.9) / 1.0)), (), 0))
         phone_screen(layer, lt, msgs, "", 1.0)
         f.alpha_composite(layer, (0, 170))
         banner_top(f, "②", "答えじゃなく、質問してもらう")
-        if 2.0 <= lt < 5.2:  # 大きな字幕（長めに）。保存の表示は、字幕が消えてから出す（重ならない）
+        if 1.8 <= lt < 4.1:  # 大きな字幕（長めに）。保存の表示は、字幕が消えてから出す（重ならない）
             im = sub_img("ai", "今日、息子さんが\n笑った瞬間、\nありましたか？")
-            paste(f, im, 0, 1330 - im.height / 2, ease((lt - 2.0) / 0.15))
-        if lt >= 5.3:
-            note(f, lt, 5.3, "保存して、明日使ってね")
+            paste(f, im, 0, 1330 - im.height / 2, ease((lt - 1.8) / 0.15))
+        if lt >= 4.2:
+            note(f, lt, 4.2, "保存して、明日使ってね")
     if name == "t3":
         group_screen(f, lt)
         banner_top(f, "③", "答えを使える形で残してもらう")
