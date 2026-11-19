@@ -72,6 +72,20 @@ def sunset_window(f):
     return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8)).convert(f.mode)
 
 
+def still_frames(path, start, dur, blur=False):
+    """静止画を、ゆっくり寄せて（1.00→1.05倍）動きをつける。start は、同じ絵が続く場面でのつながり用の秒。"""
+    base = Image.open(path).convert("RGB").resize((W, H), Image.LANCZOS)
+    n = round(dur * FPS)
+    for i in range(n):
+        z = 1.0 + 0.05 * (start + i / FPS) / 4.0
+        cw, ch = int(W / z), int(H / z)
+        x0, y0 = (W - cw) // 2, (H - ch) // 2
+        f = base.crop((x0, y0, x0 + cw, y0 + ch)).resize((W, H), Image.BILINEAR)
+        if blur:
+            f = ImageEnhance.Brightness(f.filter(ImageFilter.GaussianBlur(14))).enhance(0.85)
+        yield f.convert("RGBA")
+
+
 def frames(clip, start, dur, face, blur=False):
     cx, cy, z = FACE[face]
     cw, ch = int(1080 / z), int(1916 / z)
@@ -192,6 +206,9 @@ def main():
             sw = TELL_SWITCH
             src = itertools.chain(frames(s["clip"], s["cst"], sw, s["face"]),
                                   frames(s["clip"], SMILE_AT, s["dur"] - sw, s["face"]))
+        elif s["clip"] == "3_smile":  # 最後のアップは、希さんが渡した修正済みの絵（窓の外が夕景）
+            src = still_frames(KIT / "keyframes" / "3_aina_close.png", s["cst"] - 0.3, s["dur"],
+                               blur=(s["name"] == "end"))
         else:
             src = frames(s["clip"], s["cst"], s["dur"], s["face"], blur=(s["name"] == "end"))
         for i, f in enumerate(src):
