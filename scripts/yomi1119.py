@@ -31,7 +31,7 @@ FACE = {"wide": (540, 960, 1.0), "close": (540, 900, 1.15)}
 SCENES = [
     ("open", "1_kitchen", 0.0, "close", [("x2", "rina", "音読するから聞いて！", 0.15)], 0.0),
     ("tell", "1_kitchen", 2.2, "close", [("x1", "aina", "今手が離せないの。\nそうだ、AIに聞いてもらおう！", 0.1)], 0.0),
-    ("read", "2_read", 0.0, "close", [], 2.4),
+    ("read", "2_read", 0.0, "close", [], 1.8),
     ("ai", "2_read", 2.4, "close", [("x4", "ai", "上手に読めたね！\n優しい感じで素敵でした！", 0.2)], 0.0),
     ("last", "3_smile", 0.3, "wide", [("x3", "rina", "最後にもう一度読むから\nママに聞いてほしい", 0.1)], 0.0),
     ("end", "3_smile", 3.2, "wide", [], 2.2),
@@ -201,11 +201,19 @@ def main():
            "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", str(OUT)]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     gt = 0.0
+    read_t0 = 3.2
     for s in scenes:
         if s["name"] == "tell":  # 「そうだ、AIに聞いてもらおう！」から、愛奈を困り顔→ひらめいた笑顔に切りかえる
             sw = TELL_SWITCH
             src = itertools.chain(frames(s["clip"], s["cst"], sw, s["face"]),
-                                  frames(s["clip"], SMILE_AT, s["dur"] - sw, s["face"]))
+                                  frames("2_read", 0.0, s["dur"] - sw, "close"))
+            read_t0 = s["dur"] - sw  # 2_read のどこまで使ったか（次の read 場面のつなぎ用）
+        elif s["name"] == "read":
+            src = frames("2_read", min(read_t0, 4.0), s["dur"], s["face"])
+        elif s["name"] == "ai":  # 笑顔のカットを、行って戻る（行き来）で長く使う
+            fw = list(frames("2_read", 2.0, 3.0, s["face"]))
+            seq = fw + fw[::-1]
+            src = (seq[i % len(seq)] for i in range(round(s["dur"] * FPS)))
         elif s["clip"] == "3_smile":  # 最後のアップは、希さんが渡した修正済みの絵（窓の外が夕景）
             src = still_frames(KIT / "keyframes" / "3_aina_close.png", s["cst"] - 0.3, s["dur"],
                                blur=(s["name"] == "end"))
