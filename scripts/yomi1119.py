@@ -58,6 +58,11 @@ def frames(clip, start, dur, face, blur=False):
         if len(buf) == n:
             last = Image.frombytes("RGB", (W, H), buf)
         f = last.copy()
+        if clip == "3_smile":  # 昼の光のキッチンを、夕方6時の光に寄せる（暖色・少し暗く）
+            r, g, b = f.split()
+            f = Image.merge("RGB", (r.point(lambda v: min(255, int(v * 1.06))), g.point(lambda v: int(v * 0.88)),
+                                    b.point(lambda v: int(v * 0.70))))
+            f = ImageEnhance.Brightness(f).enhance(0.92)
         if blur:
             f = ImageEnhance.Brightness(f.filter(ImageFilter.GaussianBlur(14))).enhance(0.85)
         yield f.convert("RGBA")
@@ -80,11 +85,12 @@ def caption_note(f, lt, t0, text="全文はキャプションに。保存して�
 def decorate(f, sc, lt, vo, gt):
     name = sc["name"]
     if gt < 3.4 and name in ("open", "tell"):  # タイトルは0秒目から全部見せる
-        text_block(f, [("夕方6時", 50, (120, 96, 84))], 370, 9, instant=True, cx=700)
-        text_block(f, [("「音読聞いて！」でも", 56, (90, 110, 170))], 440, 9, instant=True, cx=700)
-        text_block(f, [("手が離せない…どうする？", 54, (236, 92, 108))], 525, 9, instant=True, cx=700)
-    if name == "tell":
-        caption_note(f, lt, 0.5)
+        text_block(f, [("夕方6時", 50, (120, 96, 84))], 940, 9, instant=True)
+        text_block(f, [("「音読聞いて！」でも", 56, (90, 110, 170))], 1005, 9, instant=True)
+        text_block(f, [("手が離せない…どうする？", 54, (236, 92, 108))], 1090, 9, instant=True)
+    if name == "ai":  # 保存バナーは中盤（AIのほめ言葉のあと）に1回
+        st = sc["lines"][0][3] + len(vo["x4"]) / SR
+        caption_note(f, lt, st + 0.1)
     if name == "end":
         f.alpha_composite(f.filter(ImageFilter.GaussianBlur(10)))
         layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
