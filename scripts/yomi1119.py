@@ -43,6 +43,28 @@ def voice(key):
     return np.frombuffer(raw, np.float32).astype(float)
 
 
+def sunset_window(f):
+    """窓の外（青空・白い雲・遠いビル）だけを、夕方の空の色にする。髪・肌（オレンジ系）は変えない。"""
+    arr = np.asarray(f.convert("RGB")).astype(np.float32)
+    h, w, _ = arr.shape
+    x1, y0, y1 = int(w * 0.58), int(h * 0.09), int(h * 0.52)
+    reg = arr[y0:y1, :x1]
+    r, g, b = reg[..., 0], reg[..., 1], reg[..., 2]
+    sky = ((b >= r - 6) & (b > 120) | ((r > 225) & (g > 225) & (b > 225))).astype(np.float32)
+    # 髪の毛・肌（r が b よりかなり大きい）は除く
+    sky *= (r < b + 25).astype(np.float32)
+    m = Image.fromarray((sky * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(3))
+    sky = np.asarray(m).astype(np.float32)[..., None] / 255.0
+    lum = (0.3 * r + 0.59 * g + 0.11 * b)[..., None] / 255.0
+    t = np.linspace(0, 1, reg.shape[0])[:, None, None]
+    top, bot = np.array([105, 96, 170], np.float32), np.array([250, 150, 105], np.float32)
+    grad = top * (1 - t) + bot * t
+    new = grad * (0.55 + 0.55 * lum)
+    out = arr.copy()
+    out[y0:y1, :x1] = reg * (1 - sky) + new * sky
+    return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8)).convert(f.mode)
+
+
 def frames(clip, start, dur, face, blur=False):
     cx, cy, z = FACE[face]
     cw, ch = int(1080 / z), int(1916 / z)
@@ -58,6 +80,8 @@ def frames(clip, start, dur, face, blur=False):
         if len(buf) == n:
             last = Image.frombytes("RGB", (W, H), buf)
         f = last.copy()
+        if clip == "3_smile":  # 窓の外の昼の空を、夕焼け（紫→オレンジ）に差しかえる
+            f = sunset_window(f)
         if clip == "3_smile":  # 昼の光のキッチンを、夕方6時の光に寄せる（暖色・少し暗く）
             r, g, b = f.split()
             f = Image.merge("RGB", (r.point(lambda v: min(255, int(v * 1.06))), g.point(lambda v: int(v * 0.88)),
