@@ -37,6 +37,7 @@ SCENES = [
 
 ZOPEN = ("Z1_aina_open", 1.85)
 ZEND = ("Z2_aina_end", 1.3)
+ZTYPE = {"t1": ("Z3_type1", 1.3), "t2": ("Z4_type2", 1.3), "t3": ("Z5_type3", 1.3)}  # 各型の頭で愛奈が言う声
 CARD_AT = 5.0
 
 
@@ -147,7 +148,7 @@ def summary(f, lt):
     d.rounded_rectangle((60, 430, W - 60, 1330), 56, fill=(255, 252, 245, 244), outline=(240, 170, 150), width=6)
     d.text((W / 2, 520), "親がAIに頼むときの型、3つ", font=font(54, FONT_B), fill=INK, anchor="mm")
     rows = [("①", "「〇〇の親です」で始める"), ("②", "答えじゃなく、質問してもらう"),
-            ("③", "形を決める（リスト・3行・1つだけ）")]
+            ("③", "答えを使える形で残してもらう")]
     cols = [(236, 92, 108), (74, 170, 150), (150, 110, 200)]
     for i, ((n, t), c) in enumerate(zip(rows, cols)):
         y = 650 + i * 190
@@ -182,7 +183,7 @@ def decorate(f, name, lt, dur, vo):
             note(f, lt, 5.3, "保存して、明日使ってね")
     if name == "t3":
         group_screen(f, lt)
-        banner_top(f, "③", "形を決める（リスト・3行・1つだけ）")
+        banner_top(f, "③", "答えを使える形で残してもらう")
     if name == "sum":
         summary(f, lt)
     if name == "end":
@@ -211,6 +212,8 @@ def decorate(f, name, lt, dur, vo):
 
 def main():
     vo = {"open": voice(*ZOPEN), "end": voice(*ZEND)}
+    for k, (nm, tp) in ZTYPE.items():
+        vo[k] = voice(nm, tp)
     global CARD_AT
     END_VOICE_AT = 0.15
     CARD_AT = END_VOICE_AT + len(vo["end"]) / SR + 0.5  # 声が終わって、愛奈の笑顔で一拍（約0.9秒）置いてからカード
@@ -235,6 +238,10 @@ def main():
 
     put(vo["open"], scenes[0]["t0"] + 0.1)
     put(vo["end"], scenes[-1]["t0"] + END_VOICE_AT)
+    for sc in scenes:
+        if sc["name"] in ZTYPE:
+            put(vo[sc["name"]], sc["t0"] + 0.15)
+            assert len(vo[sc["name"]]) / SR + 0.15 <= sc["dur"], sc["name"]
     for s in scenes:
         if s["name"] == "sum":
             p = message_pop()
