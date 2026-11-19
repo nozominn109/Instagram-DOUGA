@@ -4,6 +4,7 @@
 使い方:
     python3 scripts/yomi1119.py
 """
+import itertools
 import subprocess
 
 import numpy as np
@@ -17,6 +18,9 @@ from short_ai_ok import small_logo, text_block
 KIT = ROOT / "output" / "yomi1119"
 CLIPS, VOICES = KIT / "clips", KIT / "voices"
 OUT = KIT / "yomi1119.mp4"
+
+TELL_SWITCH = 1.8   # 「そうだ」の頭（秒）
+SMILE_AT = 4.0      # 1_kitchen の、愛奈がにっこりしている秒
 
 # 声（ファイル, 速さ）
 VOICE = {"x2": ("X2_rina", 1.4), "x1": ("X1_aina", 1.45), "x4": ("X4_ai", 1.35), "x3": ("X3_rina", 1.35)}
@@ -181,7 +185,12 @@ def main():
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     gt = 0.0
     for s in scenes:
-        src = frames(s["clip"], s["cst"], s["dur"], s["face"], blur=(s["name"] == "end"))
+        if s["name"] == "tell":  # 「そうだ、AIに聞いてもらおう！」から、愛奈を困り顔→ひらめいた笑顔に切りかえる
+            sw = TELL_SWITCH
+            src = itertools.chain(frames(s["clip"], s["cst"], sw, s["face"]),
+                                  frames(s["clip"], SMILE_AT, s["dur"] - sw, s["face"]))
+        else:
+            src = frames(s["clip"], s["cst"], s["dur"], s["face"], blur=(s["name"] == "end"))
         for i, f in enumerate(src):
             proc.stdin.write(decorate(f, s, i / FPS, vo, s["t0"] + i / FPS).convert("RGB").tobytes())
     proc.stdin.close()
