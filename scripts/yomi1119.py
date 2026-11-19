@@ -25,11 +25,11 @@ FACE = {"wide": (540, 960, 1.0), "close": (540, 900, 1.15)}
 
 # 場面: (名前, 動画, 動画の開始秒, 顔, [(声キー, 話す人, 字幕, 場面内の開始秒)], 最低の長さ)
 SCENES = [
-    ("open", "1_kitchen", 0.0, "close", [("x2", "rina", "音読聞いて！", 0.15)], 0.0),
-    ("tell", "1_kitchen", 2.2, "close", [("x1", "aina", "今、手が離せないの。\nAIに聞いてもらおう", 0.1)], 0.0),
+    ("open", "1_kitchen", 0.0, "close", [("x2", "rina", "音読するから聞いて！", 0.15)], 0.0),
+    ("tell", "1_kitchen", 2.2, "close", [("x1", "aina", "今手が離せないの。\nそうだ、AIに聞いてもらおう！", 0.1)], 0.0),
     ("read", "2_read", 0.0, "close", [], 2.4),
-    ("ai", "2_read", 2.4, "close", [("x4", "ai", "「そっと」の読み方、\nやさしくて素敵でした", 0.2)], 0.0),
-    ("last", "3_smile", 0.3, "wide", [("x3", "rina", "最後のとこは、ママに聞いてほしい", 0.1)], 0.0),
+    ("ai", "2_read", 2.4, "close", [("x4", "ai", "上手に読めたね！\n優しい感じで素敵でした！", 0.2)], 0.0),
+    ("last", "3_smile", 0.3, "wide", [("x3", "rina", "最後にもう一度読むから\nママに聞いてほしい", 0.1)], 0.0),
     ("end", "3_smile", 3.2, "wide", [], 2.2),
 ]
 
@@ -97,7 +97,7 @@ def decorate(f, sc, lt, vo, gt):
         d = ImageDraw.Draw(layer)
         d.rounded_rectangle((60, 1000, W - 60, 1400), 48, fill=(255, 252, 245, 238), outline=(240, 170, 150), width=6)
         d.text((W / 2, 1075), "手が離せない夕方は、AIを聞き役に。", font=font(44), fill=INK, anchor="mm")
-        outlined(d, (W / 2, 1170), "最後は、ママに聞いてほしい。", font(58), (236, 92, 108), sw=8, anchor="mm")
+        outlined(d, (W / 2, 1170), "最後は、ママに聞いてもらう。", font(58), (236, 92, 108), sw=8, anchor="mm")
         d.text((W / 2, 1262), "田中家の続きは平日20時", font=font(40, FONT_B), fill=INK, anchor="mm")
         d.rounded_rectangle((220, 1300, W - 220, 1380), 40, fill=(236, 120, 140, 245))
         d.text((W / 2, 1340), "フォローしてね", font=font(44), fill=(255, 255, 255), anchor="mm")
