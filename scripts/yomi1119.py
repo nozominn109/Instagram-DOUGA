@@ -57,13 +57,16 @@ def sunset_window(f):
     sky = ((b >= r - 6) & (b > 120) | ((r > 225) & (g > 225) & (b > 225))).astype(np.float32)
     # 髪の毛・肌（r が b よりかなり大きい）は除く
     sky *= (r < b + 25).astype(np.float32)
-    m = Image.fromarray((sky * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(3))
+    m = Image.fromarray((sky * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(9)).filter(ImageFilter.GaussianBlur(7))
     sky = np.asarray(m).astype(np.float32)[..., None] / 255.0
-    lum = (0.3 * r + 0.59 * g + 0.11 * b)[..., None] / 255.0
+    # 街並みの細かい絵は歪んで見えるので、強くぼかして「夕焼けのかすんだ街」にする
+    lum_img = Image.fromarray((np.clip(0.3 * r + 0.59 * g + 0.11 * b, 0, 255)).astype(np.uint8)).filter(
+        ImageFilter.GaussianBlur(28))
+    lum = np.asarray(lum_img).astype(np.float32)[..., None] / 255.0
     t = np.linspace(0, 1, reg.shape[0])[:, None, None]
     top, bot = np.array([105, 96, 170], np.float32), np.array([250, 150, 105], np.float32)
     grad = top * (1 - t) + bot * t
-    new = grad * (0.55 + 0.55 * lum)
+    new = grad * (0.72 + 0.28 * lum)
     out = arr.copy()
     out[y0:y1, :x1] = reg * (1 - sky) + new * sky
     return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8)).convert(f.mode)
