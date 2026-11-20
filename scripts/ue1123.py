@@ -19,21 +19,21 @@ CLIPS, VOICES = KIT / "clips", KIT / "voices"
 OUT = KIT / "ue1123.mp4"
 
 # 声（ファイル, 速さ）。冒頭・後半の愛奈はゆっくり。蒼は短く小さめ
-VOICE = {"a1": ("A1_aina", 1.1), "a2": ("A2_sora", 1.2), "a3": ("A3_aina", 1.1), "a4": ("A4_sora", 1.2),
-         "a5": ("A5_aina", 1.0)}
+VOICE = {"a1": ("A1_aina", 1.25), "a2": ("A2_sora", 1.3), "a3": ("A3_aina", 1.3), "a4": ("A4_sora", 1.3),
+         "a5": ("A5_aina", 1.1)}
 
 ASK = "きょうだい喧嘩で、つい上の子ばかり叱ってしまいます。どう声をかけたらいい？"
 ANS = "叱る前に、決めつけず、上の子の気持ちを聞いて"
 
 # 場面: (名前, 動画, 動画の開始秒, [(声キー, 話す人, 字幕, 場面内の開始秒)], 最低の長さ)
 SCENES = [
-    ("scold", "1_scold", 0.0, [("a1", "aina", "蒼！お兄ちゃんなんだから、\n我慢しなさい！", 0.12)], 0.0),
-    ("back", "2_back", 0.3, [("a2", "sora", "どうせ、俺だけ怒られるし。", 0.12)], 0.0),
-    ("phone", "3_hatto", 0.5, [], 4.5),
-    ("sorry", "4_sorry", 0.2, [("a3", "aina", "……ごめん。\nいきなり蒼だけ怒って。", 0.12)], 0.0),
-    ("talk", "5_talk", 0.3, [("a4", "sora", "……莉奈が先に、\n俺のゲーム消した。", 0.12)], 0.0),
-    ("nod", "4_sorry", 3.0, [("a5", "aina", "……そっか。", 0.12)], 2.2),
-    ("end", "4_sorry", 4.2, [], 2.6),
+    ("scold", "1_scold", 0.0, [("a1", "aina", "蒼！お兄ちゃんなんだから、\n我慢しなさい！", 0.7)], 0.0),
+    ("back", "2_back", 0.3, [("a2", "sora", "どうせ、俺だけ怒られるし。", 0.08)], 0.0),
+    ("phone", "3_hatto", 0.5, [], 4.2),
+    ("sorry", "4_sorry", 0.2, [("a3", "aina", "……ごめん。\nいきなり蒼だけ怒って。", 0.08)], 0.0),
+    ("talk", "5_talk", 0.3, [("a4", "sora", "……莉奈が先に、\n俺のゲーム消した。", 0.08)], 0.0),
+    ("nod", "4_sorry", 3.0, [("a5", "aina", "……そっか。", 0.08)], 2.0),
+    ("end", "4_sorry", 4.2, [], 1.7),
 ]
 
 
@@ -83,26 +83,25 @@ def note(f, lt, t0, text, y=1150):
 
 def decorate(f, sc, lt, vo, gt):
     name = sc["name"]
-    if name == "scold" and gt < 3.6:  # タイトルは0秒目から全部見せる（人物の顔にかからない画面下のほう）
+    if name == "scold" and gt < 1.0:  # タイトルは0秒目から約1秒（人物の顔にかからない画面下のほう）
         text_block(f, [("上の子ばっかり", 84, (236, 92, 108))], 1160, lt, instant=True)
         text_block(f, [("怒っちゃう", 100, (236, 92, 108))], 1270, lt, instant=True)
     if name == "phone":
-        if lt >= 0.9:  # 最初の約0.9秒は、はっとした愛奈をそのまま見せ、そのあと背景をぼかしてスマホ画面を出す
+        if lt >= 0.6:  # 最初の約0.6秒は、はっとした愛奈をそのまま見せ、そのあと背景をぼかしてスマホ画面を出す
             f = ImageEnhance.Brightness(f.filter(ImageFilter.GaussianBlur(14))).enhance(0.85)
-            t = lt - 0.9
+            t = lt - 0.6
             layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-            msgs = [("me", ASK, int(len(ASK) * min(1, t / 1.0)), (), 0)]
-            if t > 1.1:
-                msgs.append(("ai", ANS, int(len(ANS) * min(1, (t - 1.1) / 0.45)), (), 0))
+            msgs = [("me", ASK, int(len(ASK) * min(1, t / 0.85)), (), 0)]
+            if t > 0.9:
+                msgs.append(("ai", ANS, int(len(ANS) * min(1, (t - 0.9) / 0.4)), (), 0))
             phone_screen(layer, t, msgs, "", 1.0)
             f.alpha_composite(layer, (0, 170))
-            if t >= 1.3:  # 答えは、大きな字幕で約2.3秒止める
+            if t >= 1.0:  # 答えは、大きな字幕で約2.3秒止める
                 im = sub_img("ai", "叱る前に、決めつけず、\n上の子の気持ちを聞いて")
-                paste(f, im, 0, 1330 - im.height / 2, ease((t - 1.3) / 0.15))
-    if name == "sorry":
-        note(f, lt, 0.5, "全文はキャプションに。保存してね")
+                paste(f, im, 0, 1330 - im.height / 2, ease((t - 1.0) / 0.15))
+            note(f, t, 2.0, "全文はキャプションに。保存してね", y=1160)  # 保存バナーは、AI相談の後半に1回
     if name == "end":  # 余韻のあと、フェードで（セリフにかぶせない）
-        k = min(1.0, max(0.0, (lt - 0.3) / 0.8))
+        k = min(1.0, max(0.0, (lt - 0.2) / 0.7))
         if k > 0:
             f2 = f.filter(ImageFilter.GaussianBlur(10 * k))
             f.alpha_composite(Image.blend(f.convert("RGB"), f2.convert("RGB"), k).convert("RGBA"))
@@ -116,10 +115,14 @@ def decorate(f, sc, lt, vo, gt):
             paste(f, layer, 0, 0, k)
     for v, sp, sub, st in sc["lines"]:
         ln = len(vo[v]) / SR
-        if sub and st - 0.03 <= lt < st + ln + 0.15:
+        if name == "scold":  # セリフ字幕は、タイトルが消えたあとに出す
+            st_show = 1.0
+        else:
+            st_show = st - 0.03
+        if sub and max(st_show, st - 0.03) <= lt < st + ln + 0.15:
             im = sub_img(sp, sub)
             y = 1010 if name == "scold" else 1330
-            paste(f, im, 0, y - im.height / 2, ease((lt - st + 0.03) / 0.1))
+            paste(f, im, 0, y - im.height / 2, ease((lt - max(st_show, st - 0.03)) / 0.1))
     if name != "end":
         paste(f, small_logo(), 30, 300)
     return f
@@ -165,8 +168,8 @@ def main():
             duck[j:j + len(x)] = 0.4
         if s["name"] == "phone":
             for i in range(9):
-                sfx(tap(), s["t0"] + 1.0 + i * 0.1)
-            sfx(message_pop(), s["t0"] + 0.9 + 1.2)
+                sfx(tap(), s["t0"] + 0.7 + i * 0.09)
+            sfx(message_pop(), s["t0"] + 0.6 + 0.9)
     duck = np.convolve(duck, np.ones(3000) / 3000, "same")
     mix = mix * duck + voices
     fade = int(SR * 0.8)
