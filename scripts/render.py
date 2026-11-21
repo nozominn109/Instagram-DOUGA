@@ -41,7 +41,11 @@ COLORS = {
     "ai": (74, 186, 168), "sora": (60, 70, 96), "noa": (246, 150, 170), "chappy": (214, 168, 106),
 }
 
-TL = json.loads((BUILD / "timeline.json").read_text())
+# 第1話の台本タイミング。新しい環境では build/ が空なので、ないときは仮の値で動かす（ショートの仕上げには使わない）
+_TL_PATH = BUILD / "timeline.json"
+TL = (json.loads(_TL_PATH.read_text()) if _TL_PATH.exists() else
+      [{"id": f"l{i:02d}", "speaker": "rina", "text": "", "start": float(i), "dur": 1.0, "end": float(i) + 1.0,
+        "audio": False, "mouth": []} for i in range(1, 21)])
 LINE = {x["id"]: x for x in TL}
 END_T = TL[-1]["end"]
 TOTAL = END_T + END_CARD

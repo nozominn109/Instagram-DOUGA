@@ -26,8 +26,10 @@
 
 ## 制作の流れ
 
-1. 私（Claude）が台本をカットに分け、カットごとの日本語の指示文を用意する
-2. 希さん：ChatGPTで絵 → Kling 3.0で動画＋日本語の声（ネイティブ音声）
-3. 希さんが動画をチャットに送る → 私が `output/ep01_kit/clips/` に置いて `scripts/assemble.py` で字幕・BGM・スマホ画面・エンドカードを入れて仕上げる（慣れたらCanvaでも可）
+**制作のときは、必ずスキル `.claude/skills/tanaka-reel/`（SKILL.md と reference/）を読んで、その手順どおりに進める。**
 
-詳しくは `docs/beginner_guide.md` と `docs/ep01_production_kit.md`。
+1. 計画の会話から決定稿が届く（台本はセリフを変えない）→ `docs/<回>_kit.md` に保存
+2. 私（Claude）が絵の指示を1枚ずつ出す → 希さんがChatGPTで作る（直しはマークアップ）
+3. 動画はKling 2.5 Turbo・1080p・5秒、声はElevenLabs（蒼はHinata）。希さんが作ってチャットに送る
+4. 私が `scripts/short_template.py` をコピーして仕上げ、`scripts/tools.py` で確認・表紙・投稿ライブラリへの保存
+5. 計画の会話へまとめて報告、`docs/改善ログ_制作側.md` に「何をどう変えたか／なぜ」を残す
