@@ -38,7 +38,7 @@ TITLE_SEC = 0.7
 
 # ★ここを変える（3）声（ファイル名, 速さ）
 VOICE = {"b1": ("B1_aina", 1.25), "b2": ("B2_sora", 1.3), "b3": ("B3_aina", 1.25), "b4": ("B4_sora", 1.3),
-         "b5": ("B5_aina", 1.1), "b6": ("B6_sora", 1.2), "b7": ("B7_aina", 1.1)}
+         "b6": ("B6_sora", 1.2), "b7": ("B7_aina", 1.1)}
 
 # ★ここを変える（4）スマホ画面（セリフなし・文字だけ）
 ASK = "帰ってきた子に聞いたら「ほっといて」と言われました"
@@ -47,15 +47,14 @@ ANS_SUB = "帰宅直後の確認は、\n尋問に聞こえます。\n追わず�
 
 # ★ここを変える（5）場面
 SCENES = [
-    ("genkan_a", "1_genkan_v2", 0.0, [("b1", "aina", "テスト、返ってきた？", 0.7)], 0.0),
-    ("genkan_b", "1_genkan_v2", 2.2, [("b2", "sora", "……ほっといて。", 0.1)], 0.0),
+    ("genkan_a", "png:1_genkan", 0.0, [("b1", "aina", "テスト、返ってきた？", 0.7)], 0.0),
+    ("genkan_b", "g2_back", 0.0, [("b2", "sora", "……ほっといて。", 0.1)], 0.0),
     ("phone", "2_phone", 0.3, [], 4.5),
-    ("kitchen", "3_kitchen", 0.0, [("b3", "aina", "今日、試合だったよね", 0.2),
-                                    ("b4", "sora", "……別に。", 0.25),
-                                    ("b5", "aina", "そっか。", 0.15),
-                                    ("b6", "sora", "……勝った。", 0.85),
-                                    ("b7", "aina", "そっか。", 0.12)], 0.0),
-    ("end", "3_kitchen", 4.0, [], 1.7),
+    ("k1", "png:k1_pot", 0.0, [("b3", "aina", "今日、試合だったよね", 0.2)], 0.0),
+    ("k2", "png:k2_betsuni", 0.0, [("b4", "sora", "……別に。", 0.25)], 0.0),
+    ("k3", "png:k3_katta", 0.0, [("b6", "sora", "……勝った。", 0.85)], 0.0),
+    ("k4", "png:k4_sokka", 0.0, [("b7", "aina", "そっか。", 0.15)], 0.0),
+    ("end", "png:k4_sokka", 0.0, [], 2.0),
 ]
 PHONE_FACE = 0.3
 NOD_TAIL = 0.8
@@ -71,6 +70,19 @@ def voice(key):
     raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(VOICES / f"{name}.mp3"), "-af", af, "-ac", "1", "-ar",
                           str(SR), "-f", "f32le", "-"], capture_output=True, check=True).stdout
     return np.frombuffer(raw, np.float32).astype(float)
+
+
+def still_frames(name, dur, start=0.0, blur=False):
+    """決まった絵を、ゆっくり寄せて動きをつける（1.00→約1.05倍）。"""
+    base = Image.open(KIT / "keyframes" / f"{name}.png").convert("RGB").resize((W, H), Image.LANCZOS)
+    for i in range(round(dur * FPS)):
+        z = 1.0 + 0.05 * (start + i / FPS) / 4.0
+        cw, ch = int(W / z), int(H / z)
+        x0, y0 = (W - cw) // 2, (H - ch) // 2
+        f = base.crop((x0, y0, x0 + cw, y0 + ch)).resize((W, H), Image.BILINEAR)
+        if blur:
+            f = ImageEnhance.Brightness(f.filter(ImageFilter.GaussianBlur(14))).enhance(0.85)
+        yield f.convert("RGBA")
 
 
 SCENE_OPTS = {  # 場面ごとの特別あつかい: use=元動画の何秒分を使うか（足りない分はゆっくり再生）, zoom=(中心x, 中心y, 倍率) で切り出し
@@ -144,8 +156,8 @@ def decorate(f, sc, lt, vo, gt):
                 im = sub_img("ai", ANS_SUB)
                 paste(f, im, 0, 1330 - im.height / 2, ease((t - 1.0) / 0.15))
 
-    if name == "kitchen":
-        note(f, lt, 0.2, "全文はキャプションに。保存してね", y=1470)  # 保存バナーは、キッチンの最初に小さく
+    if name == "end":
+        note(f, lt, 0.25, "全文はキャプションに。保存してね", y=880)  # 保存バナーは、最後のカットのあとに出す
     if name == "end":  # 余韻のあと、フェードで（セリフにかぶせない）
         k = min(1.0, max(0.0, (lt - 0.2) / 0.7))
         if k > 0:
@@ -183,7 +195,9 @@ def main():
             lt += st
             timed.append((v, sp, sub, lt))
             lt += len(vo[v]) / SR
-        if name == "kitchen":
+        if name == "k2":
+            dur = lt + 0.8  # 愛奈は無言で鍋に戻る間（1秒以内）
+        if name == "k4":
             dur = lt + NOD_TAIL  # 最後のセリフのあとの余韻
         else:
             dur = max(dur, lt + 0.2)
@@ -193,7 +207,7 @@ def main():
     print(f"合計 {total:.1f} 秒")
     music = music_bed(total, 0.06)
     env = np.ones_like(music)
-    nod = next((s for s in scenes if s["name"] == "kitchen" and s["lines"]), None)
+    nod = next((s for s in scenes if s["name"] == "k4" and s["lines"]), None)
     if nod:  # 最後のセリフ（そっか。）から、BGMを少し下げて余韻を残す
         j0 = int((nod["t0"] + nod["lines"][-1][3]) * SR)
         ramp = int(SR * 0.6)
@@ -229,7 +243,9 @@ def main():
            "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", str(OUT)]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     for s in scenes:
-        for i, f in enumerate(frames(s["clip"], s["cst"], s["dur"], name=s["name"])):
+        src = (still_frames(s["clip"][4:], s["dur"], blur=(s["name"] == "end")) if s["clip"].startswith("png:")
+               else frames(s["clip"], s["cst"], s["dur"], name=s["name"]))
+        for i, f in enumerate(src):
             proc.stdin.write(decorate(f, s, i / FPS, vo, s["t0"] + i / FPS).convert("RGB").tobytes())
     proc.stdin.close()
     proc.wait()
