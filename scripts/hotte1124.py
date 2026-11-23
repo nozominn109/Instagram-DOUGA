@@ -34,7 +34,7 @@ OUT = KIT / f"{NAME}.mp4"
 # ★ここを変える（2）タイトル（0秒目から TITLE_SEC 秒）。顔・口元にかからない画面の下（玄関マットのあたり）
 TITLE = [("「ほっといて」って", 76, (236, 92, 108)), ("言われた", 96, (236, 92, 108))]
 TITLE_Y = 1290
-TITLE_SEC = 1.0
+TITLE_SEC = 0.7
 
 # ★ここを変える（3）声（ファイル名, 速さ）
 VOICE = {"b1": ("B1_aina", 1.25), "b2": ("B2_sora", 1.3), "b3": ("B3_aina", 1.25), "b4": ("B4_sora", 1.3),
@@ -47,8 +47,8 @@ ANS_SUB = "帰宅直後の確認は、\n尋問に聞こえます。\n追わず�
 
 # ★ここを変える（5）場面
 SCENES = [
-    ("genkan", "1_genkan", 0.0, [("b1", "aina", "テスト、返ってきた？", 1.0),
-                                  ("b2", "sora", "……ほっといて。", 0.15)], 0.0),
+    ("genkan_a", "1_genkan_v2", 0.0, [("b1", "aina", "テスト、返ってきた？", 0.7)], 0.0),
+    ("genkan_b", "1_genkan_v2", 2.2, [("b2", "sora", "……ほっといて。", 0.1)], 0.0),
     ("phone", "2_phone", 0.3, [], 4.5),
     ("kitchen", "3_kitchen", 0.0, [("b3", "aina", "今日、試合だったよね", 0.2),
                                     ("b4", "sora", "……別に。", 0.25),
@@ -73,8 +73,23 @@ def voice(key):
     return np.frombuffer(raw, np.float32).astype(float)
 
 
-def frames(clip, start, dur, blur=False):
-    vf = f"trim=start={start},setpts=PTS-STARTPTS,fps={FPS},scale={W}:{H}:flags=lanczos"
+SCENE_OPTS = {  # 場面ごとの特別あつかい: use=元動画の何秒分を使うか（足りない分はゆっくり再生）, zoom=(中心x, 中心y, 倍率) で切り出し
+    "genkan_a": dict(use=1.35),
+    "genkan_b": dict(zoom=(380, 760, 1.7)),
+}
+
+
+def frames(clip, start, dur, blur=False, name=None):
+    o = SCENE_OPTS.get(name, {})
+    vf = f"trim=start={start}" + (f":duration={o['use']}" if "use" in o else "") + ",setpts=PTS-STARTPTS"
+    if "use" in o:
+        vf += f"*{dur / o['use']:.4f}"
+    vf += f",fps={FPS}"
+    if "zoom" in o:
+        cx, cy, z = o["zoom"]
+        cw, ch = int(W / z), int(H / z)
+        vf += f",crop={cw}:{ch}:{max(0, int(cx - cw / 2))}:{max(0, int(cy - ch / 2))}"
+    vf += f",scale={W}:{H}:flags=lanczos"
     p = subprocess.Popen(["ffmpeg", "-v", "error", "-i", str(CLIPS / f"{clip}.mp4"), "-vf", vf, "-f", "rawvideo",
                           "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE)
     n, last, held = W * H * 3, None, 0
@@ -214,7 +229,7 @@ def main():
            "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", str(OUT)]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     for s in scenes:
-        for i, f in enumerate(frames(s["clip"], s["cst"], s["dur"])):
+        for i, f in enumerate(frames(s["clip"], s["cst"], s["dur"], name=s["name"])):
             proc.stdin.write(decorate(f, s, i / FPS, vo, s["t0"] + i / FPS).convert("RGB").tobytes())
     proc.stdin.close()
     proc.wait()
