@@ -34,33 +34,33 @@ OUT = KIT / f"{NAME}.mp4"
 # ★ここを変える（2）タイトル（0秒目から TITLE_SEC 秒）。顔にかからない画面の下（ソファのあたり）
 TITLE = [("宿題、", 80, (90, 110, 170)), ("AIに聞いちゃう", 96, (236, 92, 108))]
 TITLE_Y = 1250
-TITLE_SEC = 0.8
+TITLE_SEC = 0.6
 
 # ★ここを変える（3）声（ファイル名, 速さ）。希さんが実際に作った言葉（台本から変えた所あり）
-VOICE = {"r1": ("S1_rina", 1.2),    # ねえAIくん、算数の答え教えて
-         "a2": ("S2_aina", 1.2),    # 答えじゃなくて、ヒントちょうだいって聞いてみたら？
-         "r3": ("S3_rina", 1.1),    # えー
-         "r4": ("S4_rina", 1.2),    # じゃあ、ヒントちょうだい
-         "ai": ("S5_ai", 1.15),     # 65円払うと、100円まであといくらかわかるかな？
-         "r6": ("S6_rina", 1.05),   # ……100円から65円引くと……
-         "r7": ("S7_rina", 1.2),    # あっ！わかった、おつりは35円だ！
-         "a8": ("S8_aina", 1.1)}    # そうだね！
+VOICE = {"r1": ("S1_rina", 1.6),    # ねえAIくん、算数の答え教えて
+         "a2": ("S2_aina", 1.6),    # 答えじゃなくて、ヒントちょうだいって聞いてみたら？
+         "r3": ("S3_rina", 1.4),    # えー
+         "r4": ("S4_rina", 1.6),    # じゃあ、ヒントちょうだい
+         "ai": ("S5_ai", 1.4),     # 65円払うと、100円まであといくらかわかるかな？
+         "r6": ("S6_rina", 1.15),   # ……100円から65円引くと……
+         "r7": ("S7_rina", 1.6),    # あっ！わかった、おつりは35円だ！
+         "a8": ("S8_aina", 1.25)}    # そうだね！
 
 ANS_SUB = "65円払うと、100円まで\nあといくらかわかるかな？"
 
 # ★ここを変える（5）場面: (名前, 動画, 動画の開始秒, [(声キー, 話す人, 字幕, 場面内の開始秒)], 最低の長さ)
 SCENES = [
-    ("s1", "1_notice", 0.0, [("r1", "rina", "ねえAIくん、\n算数の答え教えて", 0.85)], 0.0),
-    ("s2", "2_hint", 0.0, [("a2", "aina", "答えじゃなくて、\nヒントちょうだいって聞いてみたら？", 0.1),
-                            ("r3", "rina", "えー", 0.15)], 0.0),
-    ("s3", "3_ask", 0.0, [("r4", "rina", "じゃあ、ヒントちょうだい", 0.1),
-                           ("ai", "ai", ANS_SUB, 0.2)], 0.0),
-    ("s4", "4_think", 0.0, [("r6", "rina", "……100円から65円引くと……", 0.2)], 0.0),
-    ("s5", "5_wakatta", 0.0, [("r7", "rina", "あっ！わかった、\nおつりは35円だ！", 0.15),
-                              ("a8", "aina", "そうだね！", 0.2)], 0.0),
-    ("end", "5_wakatta", 3.2, [], 3.6),
+    ("s1", "1_notice", 0.0, [("r1", "rina", "ねえAIくん、\n算数の答え教えて", 0.6)], 0.0),
+    ("s2", "2_hint", 0.0, [("a2", "aina", "答えじゃなくて、\nヒントちょうだいって聞いてみたら？", 0.05),
+                            ("r3", "rina", "えー", 0.08)], 0.0),
+    ("s3", "3_ask", 0.0, [("r4", "rina", "じゃあ、ヒントちょうだい", 0.05),
+                           ("ai", "ai", ANS_SUB, 0.1)], 0.0),
+    ("s4", "4_think", 0.0, [("r6", "rina", "……100円から65円引くと……", 0.25)], 0.0),
+    ("s5", "5_wakatta", 0.0, [("r7", "rina", "あっ！わかった、\nおつりは35円だ！", 0.1),
+                              ("a8", "aina", "そうだね！", 0.12)], 0.0),
+    ("end", "5_wakatta", 3.2, [], 1.5),
 ]
-NOD_TAIL = 0.8
+NOD_TAIL = 0.6
 SUB_Y = 1330
 
 # ここから下は、ふつうは変えなくてよい
@@ -118,18 +118,15 @@ def decorate(f, sc, lt, vo, gt):
             text_block(f, [(txt, size, col)], y, lt, instant=True)
             y += size + 26
     if name == "end":
-        if lt < 1.8:
-            f.alpha_composite(f.filter(ImageFilter.GaussianBlur(10 * min(1.0, lt / 0.6))))
-        else:
-            f.alpha_composite(f.filter(ImageFilter.GaussianBlur(10)))
+        f.alpha_composite(f.filter(ImageFilter.GaussianBlur(10 * min(1.0, lt / 0.25))))
         layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         d = ImageDraw.Draw(layer)
         d.rounded_rectangle((60, 1000, W - 60, 1400), 48, fill=(255, 252, 245, 238), outline=(240, 170, 150), width=6)
         outlined(d, (W / 2, 1110), "田中家の続きは平日20時", font(58), (236, 92, 108), sw=8, anchor="mm")
         d.rounded_rectangle((220, 1250, W - 220, 1340), 44, fill=(236, 120, 140, 245))
         d.text((W / 2, 1295), "フォローしてね", font=font(48), fill=(255, 255, 255), anchor="mm")
-        paste(f, layer, 0, (1 - back_out(min(1, lt / 0.4))) * 60, min(1, lt / 0.3))
-        note(f, lt, 1.9, "全文はキャプションに。保存してね", y=860)  # 保存バナーは、最後のカットのあと
+        paste(f, layer, 0, (1 - back_out(min(1, lt / 0.25))) * 60, min(1, lt / 0.2))
+        note(f, lt, 0.5, "全文はキャプションに。保存してね", y=860)  # 保存バナーは、最後のカットのあと
     for v, sp, sub, st in sc["lines"]:
         ln = len(vo[v]) / SR
         hold = 1.0 if v == "ai" else 0.1  # AIの返事は、大きな字幕で1秒長め
@@ -155,7 +152,7 @@ def main():
         if name == "s5":
             dur = lt + NOD_TAIL  # 最後のセリフのあとの余韻
         else:
-            dur = max(dur, lt + 0.2)
+            dur = max(dur, lt + (0.5 if name == "s3" else 0.3 if name == "s4" else 0.1))
         scenes.append(dict(name=name, clip=clip, cst=cst, lines=timed, dur=dur, t0=t))
         t += dur
     total = t
