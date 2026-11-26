@@ -128,15 +128,16 @@ def frames(clip, start, dur, blur=False):
 
 # 口と声を合わせる（ソファの場面）：話す人の声が出ているあいだだけ動画を進め、声が止まったら同じコマで待つ。
 # 聞いている人の口もと（下の箱）は、場面の最初のコマのまま止める（Klingは聞いている人の口も動かすため）
-MOUTH = {"aina": (225, 715, 475, 890), "sora": (595, 735, 845, 905)}
+# 口もとだけ止めると、首が動いたときに顔が二重にブレる（11/26 希さん）。聞いている人は頭から胸までまとめて止める
+MOUTH = {"aina": (-40, 400, 560, 1160), "sora": (585, 420, 1120, 1160)}
 SYNC = {"sokka": "sora", "betsuni": "aina", "honne": "aina", "tsurai": "sora", "ippo": "aina", "nod": "sora"}
 
 
 def _mask(box):
     x0, y0, x1, y1 = box
     m = Image.new("L", (W, H), 0)
-    ImageDraw.Draw(m).rounded_rectangle((x0 + 20, y0 + 20, x1 - 20, y1 - 20), 40, fill=255)
-    return m.filter(ImageFilter.GaussianBlur(14))
+    ImageDraw.Draw(m).rounded_rectangle((x0 + 20, y0 + 20, x1 - 20, y1 - 20), 60, fill=255)
+    return m.filter(ImageFilter.GaussianBlur(18))
 
 
 def sync_frames(sc, vo):
