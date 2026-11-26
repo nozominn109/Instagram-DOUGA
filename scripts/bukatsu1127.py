@@ -40,13 +40,13 @@ TITLE_SEC = 0.8
 # ★ここを変える（3）声（ファイル名, 速さ）。希さんが実際に作った言葉
 VOICE = {"s1": ("1_sora", 1.3),   # 僕、部活やめる。
          "a2": ("2_aina", 1.0),    # えっ……（2回言うので1回目だけ）
-         "a3": ("3_aina", 1.05),    # そっか、やめたいか
-         "s4": ("4_sora", 1.1),    # ……別に、サッカーが嫌いになったわけじゃない
-         "s5": ("5_sora", 1.1),    # ずっと試合に出られなくて。練習だけ毎日して……僕、いる意味あるのかなって
-         "a6": ("6_aina", 1.05),    # 出られないの、つらかったんだね
-         "s7": ("7_sora", 1.1),   # ……もうちょっとだけ、自分で考える。明日……監督に聞いてみるよ……僕には……何が足りないか（希さんが変更）
+         "a3": ("3_aina", 1.0),    # そっか、やめたいか
+         "s4": ("4_sora", 1.0),    # ……別に、サッカーが嫌いになったわけじゃない
+         "s5": ("5_sora", 1.0),    # ずっと試合に出られなくて。練習だけ毎日して……僕、いる意味あるのかなって
+         "a6": ("6_aina", 1.0),    # 出られないの、つらかったんだね
+         "s7": ("7_sora", 1.0),   # ……もうちょっとだけ、自分で考える。明日……監督に聞いてみるよ……僕には……何が足りないか（希さんが変更）
          "a8": ("8_aina", 1.0)}    # わかった（希さんが「そっか」から変更）
-KEEP_PAUSE = {"s5", "s7"}   # 希さんが入れた「……」の間を残す（無音を0.65秒まで残す。蒼が考えながら話す間）
+KEEP_PAUSE = {"s5", "s7"}   # 希さんが入れた「……」の間を残す（無音を0.9秒まで残す。蒼が考えながら話す間）
 
 # ★ここを変える（4）スマホ画面（声なし・文字だけ。相手は「AIくん」。チャッピーとは呼ばない）
 ASK = "中1の息子が突然「部活やめる」と言いました。どう声をかけたらいい？"
@@ -57,15 +57,12 @@ ANS_SUB = "まず「やめる・続ける」を\n決めさせず、本人の言�
 SCENES = [
     ("genkan", "g_sync", 0.0, [("s1", "sora", "僕、部活やめる。", 0.85),
                                   ("a2", "aina", "えっ……", 0.15)], 0.0),
-    ("natsu", "2_natsu", 0.5, [], 1.2),
-    ("aki", "3_aki", 0.3, [], 1.4),
-    ("nomikomu", "4_nomikomu", 0.2, [], 1.6),
-    ("phone", "phone", 0.3, [], 4.5),
-    ("sokka", "5_sokka", 0.0, [("a3", "aina", "そっか、やめたいか", 0.2)], 0.0),
-    ("betsuni", "6_betsuni", 0.0, [("s4", "sora", "……別に、サッカーが\n嫌いになったわけじゃない", 0.45)], 0.0),
+    ("phone", "phone", 0.3, [], 5.0),
+    ("sokka", "5_sokka", 0.0, [("a3", "aina", "そっか、やめたいか", 0.4)], 0.0),
+    ("betsuni", "6_betsuni", 0.0, [("s4", "sora", "……別に、サッカーが\n嫌いになったわけじゃない", 0.8)], 0.0),
     ("honne", "honne_sync", 0.0, [("s5", "sora", "ずっと試合に出られなくて。\n練習だけ毎日して……\n僕、いる意味あるのかなって", 0.15)], 0.0),
     ("tsurai", "tsurai_sync", 0.0, [("a6", "aina", "出られないの、\nつらかったんだね", 0.2)], 0.0),
-    ("ippo", "ippo_sync", 0.0, [("s7", "sora", "……もうちょっとだけ、\n自分で考える。\n明日……監督に聞いてみるよ……\n僕には……何が足りないか", 0.3)], 0.0),
+    ("ippo", "ippo_sync", 0.0, [("s7", "sora", "……もうちょっとだけ、\n自分で考える。\n明日……監督に聞いてみるよ……\n僕には……何が足りないか", 0.8)], 0.0),
     ("nod", "10_sokka2", 0.1, [("a8", "aina", "わかった", 0.3)], 0.0),
     ("end", "10_sokka2", 2.0, [], 1.5),
 ]
@@ -83,7 +80,7 @@ CLIP_MAX = {}  # 玄関は g_sync（愛奈の口が閉じた0.5〜0.8秒をゆ�
 
 def voice(key):
     name, tempo = VOICE[key]
-    keep = 0.65 if key in KEEP_PAUSE else 0.25
+    keep = 0.9 if key in KEEP_PAUSE else 0.25
     af = (f"silenceremove=start_periods=1:start_threshold=-45dB:stop_periods=-1:stop_duration={keep + 0.15}:"
           f"stop_threshold=-45dB:stop_silence={keep},atempo={tempo}")
     raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(VOICES / f"{name}.mp3"), "-af", af, "-ac", "1", "-ar",
@@ -127,6 +124,47 @@ def frames(clip, start, dur, blur=False):
         yield f.convert("RGBA")
     p.stdout.close()
     p.wait()
+
+
+# 口と声を合わせる（ソファの場面）：話す人の声が出ているあいだだけ動画を進め、声が止まったら同じコマで待つ。
+# 聞いている人の口もと（下の箱）は、場面の最初のコマのまま止める（Klingは聞いている人の口も動かすため）
+MOUTH = {"aina": (225, 715, 475, 890), "sora": (595, 735, 845, 905)}
+SYNC = {"sokka": "sora", "betsuni": "aina", "honne": "aina", "tsurai": "sora", "ippo": "aina", "nod": "sora"}
+
+
+def _mask(box):
+    x0, y0, x1, y1 = box
+    m = Image.new("L", (W, H), 0)
+    ImageDraw.Draw(m).rounded_rectangle((x0 + 20, y0 + 20, x1 - 20, y1 - 20), 40, fill=255)
+    return m.filter(ImageFilter.GaussianBlur(14))
+
+
+def sync_frames(sc, vo):
+    n = round(sc["dur"] * FPS)
+    talk = np.zeros(n, bool)
+    for v, sp, sub, st in sc["lines"]:
+        x = vo[v]
+        for i in range(n):
+            a = int((i / FPS - st) * SR)
+            seg = x[max(0, a - 800):max(0, a + 800)]
+            if a + 800 > 0 and len(seg) and np.sqrt(np.mean(seg ** 2)) > 0.012:
+                talk[i] = True
+    gen = frames(sc["clip"], sc["cst"], sc["dur"] + 2)
+    cur = next(gen)
+    first = cur.copy()
+    still = _mask(MOUTH[SYNC[sc["name"]]])
+    for i in range(n):
+        if talk[i] or not sc["lines"] or i == 0:
+            try:
+                cur = next(gen) if i else cur
+            except StopIteration:
+                pass
+        f = Image.composite(first, cur, still) if i else cur.copy()
+        z = 1 + 0.02 * i / max(1, n - 1)  # 止まって見えないよう、場面全体をごくゆっくり寄せる
+        f = f.resize((round(W * z), round(H * z)), Image.BILINEAR)
+        f = f.crop(((f.width - W) // 2, (f.height - H) // 2, (f.width - W) // 2 + W, (f.height - H) // 2 + H))
+        yield f.convert("RGBA")
+    gen.close()
 
 
 def note(f, lt, t0, text, y=1150):
@@ -250,7 +288,11 @@ def main():
            "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", str(OUT)]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     for s in scenes:
-        for i, f in enumerate(frames(s["clip"], s["cst"], s["dur"])):
+        if s["name"] in SYNC:
+            gen = sync_frames(s, vo)
+        else:
+            gen = frames(s["clip"], s["cst"], s["dur"])
+        for i, f in enumerate(gen):
             proc.stdin.write(decorate(f, s, i / FPS, vo, s["t0"] + i / FPS).convert("RGB").tobytes())
     proc.stdin.close()
     proc.wait()
