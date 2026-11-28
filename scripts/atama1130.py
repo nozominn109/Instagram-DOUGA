@@ -54,7 +54,7 @@ SCENES = [
     ("tomaru", "4_tomaru", 0.0, [("s2", "sora", "…僕、ほんとは\n頭よくないのかも", 0.3)], 0.0),
     ("iinaoshi", "5_iinaoshi", 0.0, [("a3", "aina", "でも、蒼くん\n昨日諦めずに頑張って\n調べてたよね！", 0.3)], 0.0),
     ("nod", "6_mochinaosu", 0.0, [("s4", "sora", "もう一回頑張ってみる", 0.25)], 0.0),
-    ("end", "6_mochinaosu", 3.0, [], 1.5),
+    ("end", "6_mochinaosu", 3.6, [], 1.5),
 ]
 PHONE_FACE = 0.0
 NOD_TAIL = 1.2   # 鉛筆を持ち直すところまで見せる
@@ -118,7 +118,7 @@ def frames(clip, start, dur, blur=False):
 # 聞いている人の口もと（下の箱）は、場面の最初のコマのまま止める（Klingは聞いている人の口も動かすため）
 # 口もとだけ止めると、首が動いたときに顔が二重にブレる（11/26 希さん）。聞いている人は頭から胸までまとめて止める
 MOUTH = {"sora1": (120, 500, 465, 1030), "sora4": (170, 470, 525, 1010), "aina4": (555, 480, 920, 1060)}  # ダイニングの席（絵1・絵4）
-SYNC = {"homeru": "sora1", "tomaru": None, "iinaoshi": "sora4", "nod": "aina4"}
+SYNC = {"homeru": "sora1", "tomaru": None, "iinaoshi": "sora4"}  # 最後の場面は鉛筆を持ち直すまで動画をそのまま流す（愛奈は動かない動画）
 
 
 def _mask(box):
